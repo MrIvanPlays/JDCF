@@ -4,7 +4,7 @@
 
 # JDCF
 
-A command framework for the famous discord api for java - ![JDA](https://github.com/DV8FromTheWorld/JDA)
+A command framework for the famous discord api for java - [JDA](https://github.com/DV8FromTheWorld/JDA)
 
 ## Installation
 
