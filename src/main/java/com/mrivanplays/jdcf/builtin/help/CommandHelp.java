@@ -32,8 +32,10 @@ import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,7 +72,7 @@ public class CommandHelp extends Command
                                 && !emote.isEmote())
                                 && (arrowRight.equals(emote.getName()));
                     }, event -> {
-                        // todo
+                        handleAction(message, context.getChannel(), false, paginator, 1);
                     }, () -> {
                         message.clearReactions().queue();
                         message.editMessage(settings.getHelpCommandEmbed().get().setDescription("Listening for reaction stopped").build()).queue();
@@ -103,9 +105,16 @@ public class CommandHelp extends Command
                                     ReactionEmote emote = event.getReactionEmote();
                                     return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                                             && !emote.isEmote())
-                                            && (arrowRight.equals(emote.getName()));
+                                            && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
                                 }, event -> {
-                                    // todo
+                                    ReactionEmote emote = event.getReactionEmote();
+                                    if (emote.getName().equals(arrowLeft))
+                                    {
+                                        handleAction(message, context.getChannel(), true, paginator, pageNumber);
+                                    } else
+                                    {
+                                        handleAction(message, context.getChannel(), false, paginator, pageNumber);
+                                    }
                                 }, () -> {
                                     message.clearReactions().queue();
                                     context.getChannel().sendMessage(settings.getHelpCommandEmbed().get()
@@ -120,9 +129,9 @@ public class CommandHelp extends Command
                                         ReactionEmote emote = event.getReactionEmote();
                                         return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                                                 && !emote.isEmote())
-                                                && (arrowRight.equals(emote.getName()));
+                                                && (arrowLeft.equals(emote.getName()));
                                     }, event -> {
-                                        // todo
+                                        handleAction(message, context.getChannel(), true, paginator, pageNumber);
                                     }, () -> {
                                         message.clearReactions().queue();
                                         context.getChannel().sendMessage(settings.getHelpCommandEmbed().get()
@@ -144,5 +153,72 @@ public class CommandHelp extends Command
                 context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
             }
         });
+    }
+
+    private void handleAction(Message message, TextChannel channel, boolean isArrowLeft, HelpPaginator paginator, int currentPage)
+    {
+        message.clearReactions().queue();
+        if (isArrowLeft)
+        {
+            int page = currentPage - 1;
+            message.editMessage(paginator.getPage(page).build()).queue();
+            if (page != 1)
+            {
+                message.addReaction(arrowLeft).queue();
+            }
+            if (paginator.hasNext(page))
+            {
+                message.addReaction(arrowRight).queue();
+            }
+            eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                ReactionEmote emote = event.getReactionEmote();
+                return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
+                        && !emote.isEmote())
+                        && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
+            }, event -> {
+                ReactionEmote emote = event.getReactionEmote();
+                if (emote.getName().equals(arrowLeft))
+                {
+                    handleAction(message, channel, true, paginator, currentPage);
+                } else
+                {
+                    handleAction(message, channel, false, paginator, currentPage);
+                }
+            }, () -> {
+                CommandSettings settings = commandManager.getSettings();
+                message.clearReactions().queue();
+                channel.sendMessage(settings.getHelpCommandEmbed().get()
+                        .setDescription("Listening for reaction for last executed help command").build()).queue();
+            });
+        } else
+        {
+            int page = currentPage + 1;
+            message.editMessage(paginator.getPage(page).build()).queue();
+            message.addReaction(arrowLeft).queue();
+            if (paginator.hasNext(page))
+            {
+                message.addReaction(arrowRight).queue();
+            }
+            eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                ReactionEmote emote = event.getReactionEmote();
+                return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
+                        && !emote.isEmote())
+                        && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
+            }, event -> {
+                ReactionEmote emote = event.getReactionEmote();
+                if (emote.getName().equals(arrowLeft))
+                {
+                    handleAction(message, channel, true, paginator, currentPage);
+                } else
+                {
+                    handleAction(message, channel, false, paginator, currentPage);
+                }
+            }, () -> {
+                CommandSettings settings = commandManager.getSettings();
+                message.clearReactions().queue();
+                channel.sendMessage(settings.getHelpCommandEmbed().get()
+                        .setDescription("Listening for reaction for last executed help command").build()).queue();
+            });
+        }
     }
 }

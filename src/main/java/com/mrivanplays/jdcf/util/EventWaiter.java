@@ -49,7 +49,7 @@ public class EventWaiter implements EventListener
         executor.schedule(() -> {
             waitings.remove(waiting);
             whenTimedOut.run();
-        }, 15, TimeUnit.SECONDS);
+        }, 5, TimeUnit.MINUTES);
     }
 
     @Override
