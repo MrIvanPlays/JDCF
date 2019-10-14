@@ -66,16 +66,24 @@ public final class CommandManager implements EventListener
         commands = new ArrayList<>();
         commandSettings = settings;
         jda.addEventListener(this);
-        if (settings.isEnableHelpCommand())
-        {
-            EventWaiter eventWaiter = new EventWaiter();
-            jda.addEventListener(eventWaiter);
-            registerCommand(new CommandHelp(this, eventWaiter));
-        }
-        if (settings.isEnablePrefixCommand())
-        {
-            registerCommand(new CommandPrefix(this));
-        }
+        getSettings().getExecutorService().schedule(() -> {
+            if (getSettings().isEnableHelpCommand())
+            {
+                if (!getCommand("help").isPresent())
+                {
+                    EventWaiter eventWaiter = new EventWaiter();
+                    jda.addEventListener(eventWaiter);
+                    registerCommand(new CommandHelp(this, eventWaiter));
+                }
+            }
+            if (getSettings().isEnablePrefixCommand())
+            {
+                if (!getCommand("prefix").isPresent())
+                {
+                    registerCommand(new CommandPrefix(this));
+                }
+            }
+        }, 5, TimeUnit.SECONDS);
     }
 
     /**

@@ -177,12 +177,13 @@ public class CommandHelp extends Command
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
+                // todo: fix page handling
                 if (emote.getName().equals(arrowLeft))
                 {
-                    handleAction(message, channel, true, paginator, currentPage);
+                    handleAction(message, channel, true, paginator, currentPage - 1);
                 } else
                 {
-                    handleAction(message, channel, false, paginator, currentPage);
+                    handleAction(message, channel, false, paginator, currentPage + 1);
                 }
             }, () -> {
                 CommandSettings settings = commandManager.getSettings();
@@ -206,12 +207,13 @@ public class CommandHelp extends Command
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
+                // todo: fix page handling
                 if (emote.getName().equals(arrowLeft))
                 {
-                    handleAction(message, channel, true, paginator, currentPage);
+                    handleAction(message, channel, true, paginator, currentPage - 1);
                 } else
                 {
-                    handleAction(message, channel, false, paginator, currentPage);
+                    handleAction(message, channel, false, paginator, currentPage + 1);
                 }
             }, () -> {
                 CommandSettings settings = commandManager.getSettings();

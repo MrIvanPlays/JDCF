@@ -63,13 +63,17 @@ public class HelpPaginator
                 }
                 embed.addField("`" + usage + "`", description, false);
             }
+            if (embed.getFields().isEmpty())
+            {
+                continue;
+            }
             pagesWithCommands.add(embed);
         }
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < pagesWithCommands.size(); i++)
         {
             EmbedBuilder embed = pagesWithCommands.get(i);
-            pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + i + "/" + pagesWithCommands.size()));
+            pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size()));
         }
         this.pages = pages;
         this.errorEmbed = errorEmbed;

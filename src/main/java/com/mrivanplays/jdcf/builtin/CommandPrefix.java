@@ -59,7 +59,7 @@ public class CommandPrefix extends Command
             return;
         }
         args.nextString().ifPresent(subCommand -> {
-            if (!subCommand.equalsIgnoreCase("set"))
+            if (subCommand.equalsIgnoreCase("set"))
             {
                 if (!context.getMember().hasPermission(Permission.ADMINISTRATOR))
                 {
