@@ -85,9 +85,7 @@ public final class CommandSettings
      * the commands that don't have them won't be listed in the help.
      *
      * @param enableHelpCommand value
-     * @deprecated command not finished yet
      */
-    @Deprecated
     public void setEnableHelpCommand(boolean enableHelpCommand)
     {
         this.enableHelpCommand = enableHelpCommand;
@@ -177,9 +175,7 @@ public final class CommandSettings
      * Sets the help command embed.
      *
      * @param helpCommandEmbed help command embed
-     * @deprecated command not finished yet
      */
-    @Deprecated
     public void setHelpCommandEmbed(@Nullable Supplier<EmbedBuilder> helpCommandEmbed)
     {
         this.helpCommandEmbed = helpCommandEmbed;
@@ -200,9 +196,7 @@ public final class CommandSettings
      * You are not forced to set it if you're not using the inbuilt help command.
      *
      * @param commandsPerHelpPage number
-     * @deprecated command not finished yet
      */
-    @Deprecated
     public void setCommandsPerHelpPage(int commandsPerHelpPage)
     {
         this.commandsPerHelpPage = commandsPerHelpPage;

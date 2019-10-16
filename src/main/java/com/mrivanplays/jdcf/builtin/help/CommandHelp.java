@@ -30,12 +30,15 @@ import com.mrivanplays.jdcf.args.FailReason;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +49,7 @@ public class CommandHelp extends Command
     private final EventWaiter eventWaiter;
     private final String arrowRight = "\u27A1";
     private final String arrowLeft = "\u2B05";
+    private final Map<Long, Integer> currentPageMap = new HashMap<>();
 
     public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter)
     {
@@ -58,11 +62,13 @@ public class CommandHelp extends Command
     public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args)
     {
         CommandSettings settings = commandManager.getSettings();
+        User author = context.getAuthor();
+        TextChannel channel = context.getChannel();
         HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings.getCommandsPerHelpPage(), settings.getHelpCommandEmbed(),
                 context.getMember(), context.getAuthor(), settings.getErrorEmbed());
         if (args.size() == 0)
         {
-            context.getChannel().sendMessage(paginator.getPage(1).build()).queue(message -> {
+            channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
                 if (paginator.hasNext(1))
                 {
                     message.addReaction(arrowRight).queue();
@@ -72,7 +78,7 @@ public class CommandHelp extends Command
                                 && !emote.isEmote())
                                 && (arrowRight.equals(emote.getName()));
                     }, event -> {
-                        handleAction(message, context.getChannel(), false, paginator, 1);
+                        handleAction(message, channel, false, paginator, 1, author.getIdLong());
                     }, () -> {
                         message.clearReactions().queue();
                         message.editMessage(settings.getHelpCommandEmbed().get().setDescription("Listening for reaction stopped").build()).queue();
@@ -82,7 +88,7 @@ public class CommandHelp extends Command
             return;
         }
         args.nextInt().ifPresent(pageNumber -> {
-            context.getChannel().sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
+            channel.sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
                 if (!message.getEmbeds().isEmpty())
                 {
                     for (MessageEmbed embed : message.getEmbeds())
@@ -110,14 +116,14 @@ public class CommandHelp extends Command
                                     ReactionEmote emote = event.getReactionEmote();
                                     if (emote.getName().equals(arrowLeft))
                                     {
-                                        handleAction(message, context.getChannel(), true, paginator, pageNumber);
+                                        handleAction(message, channel, true, paginator, pageNumber, author.getIdLong());
                                     } else
                                     {
-                                        handleAction(message, context.getChannel(), false, paginator, pageNumber);
+                                        handleAction(message, channel, false, paginator, pageNumber, author.getIdLong());
                                     }
                                 }, () -> {
                                     message.clearReactions().queue();
-                                    context.getChannel().sendMessage(settings.getHelpCommandEmbed().get()
+                                    channel.sendMessage(settings.getHelpCommandEmbed().get()
                                             .setDescription("Listening for reaction for last executed help command").build()).queue();
                                 });
                             } else
@@ -131,10 +137,10 @@ public class CommandHelp extends Command
                                                 && !emote.isEmote())
                                                 && (arrowLeft.equals(emote.getName()));
                                     }, event -> {
-                                        handleAction(message, context.getChannel(), true, paginator, pageNumber);
+                                        handleAction(message, channel, true, paginator, pageNumber, author.getIdLong());
                                     }, () -> {
                                         message.clearReactions().queue();
-                                        context.getChannel().sendMessage(settings.getHelpCommandEmbed().get()
+                                        channel.sendMessage(settings.getHelpCommandEmbed().get()
                                                 .setDescription("Listening for reaction for last executed help command").build()).queue();
                                     });
                                 }
@@ -147,7 +153,7 @@ public class CommandHelp extends Command
             if (failReason == FailReason.ARGUMENT_PARSED_NOT_TYPE)
             {
                 EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                context.getChannel().sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
                         .setDescription("You should type a number").build())
                         .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                 context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
@@ -155,13 +161,20 @@ public class CommandHelp extends Command
         });
     }
 
-    private void handleAction(Message message, TextChannel channel, boolean isArrowLeft, HelpPaginator paginator, int currentPage)
+    private void handleAction(Message message, TextChannel channel, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId)
     {
         message.clearReactions().queue();
         if (isArrowLeft)
         {
             int page = currentPage - 1;
             message.editMessage(paginator.getPage(page).build()).queue();
+            if (currentPageMap.containsKey(userId))
+            {
+                currentPageMap.replace(userId, page);
+            } else
+            {
+                currentPageMap.put(userId, page);
+            }
             if (page != 1)
             {
                 message.addReaction(arrowLeft).queue();
@@ -177,13 +190,12 @@ public class CommandHelp extends Command
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
-                // todo: fix page handling
                 if (emote.getName().equals(arrowLeft))
                 {
-                    handleAction(message, channel, true, paginator, currentPage - 1);
+                    handleAction(message, channel, true, paginator, currentPageMap.get(userId), userId);
                 } else
                 {
-                    handleAction(message, channel, false, paginator, currentPage + 1);
+                    handleAction(message, channel, false, paginator, currentPageMap.get(userId), userId);
                 }
             }, () -> {
                 CommandSettings settings = commandManager.getSettings();
@@ -194,6 +206,13 @@ public class CommandHelp extends Command
         } else
         {
             int page = currentPage + 1;
+            if (currentPageMap.containsKey(userId))
+            {
+                currentPageMap.replace(userId, page);
+            } else
+            {
+                currentPageMap.put(userId, page);
+            }
             message.editMessage(paginator.getPage(page).build()).queue();
             message.addReaction(arrowLeft).queue();
             if (paginator.hasNext(page))
@@ -207,13 +226,12 @@ public class CommandHelp extends Command
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
-                // todo: fix page handling
                 if (emote.getName().equals(arrowLeft))
                 {
-                    handleAction(message, channel, true, paginator, currentPage - 1);
+                    handleAction(message, channel, true, paginator, (currentPageMap.get(userId)), userId);
                 } else
                 {
-                    handleAction(message, channel, false, paginator, currentPage + 1);
+                    handleAction(message, channel, false, paginator, (currentPageMap.get(userId)), userId);
                 }
             }, () -> {
                 CommandSettings settings = commandManager.getSettings();

@@ -100,10 +100,10 @@ public class DefaultPrefixHandler implements PrefixHandler
     {
         if (!prefixes.containsKey(guildId))
         {
-            prefixes.replace(guildId, prefix);
+            prefixes.put(guildId, prefix);
         } else
         {
-            prefixes.put(guildId, prefix);
+            prefixes.replace(guildId, prefix);
         }
     }
 
