@@ -28,7 +28,19 @@ Using maven:
 </dependencies>
 ```
 
-I don't use gradle that much so I can't show how to do it with gradle.
+Using gradle:
+
+```gradle
+repositories {
+    maven {
+        url 'https://repo.mrivanplays.com/repository/ivan'
+    }
+}
+
+dependencies {
+    implementation group: 'com.mrivanplays', name: 'JDCF', version: 'VERSION' // Replace VERSION with latest version
+}
+```
 
 ## Usage
 
