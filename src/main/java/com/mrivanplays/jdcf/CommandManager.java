@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GenericEvent;
@@ -52,6 +53,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class CommandManager implements EventListener
 {
+
+    private static final Pattern ALIAS_SPLIT_PATTERN = Pattern.compile("\\|");
 
     private final List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
@@ -90,9 +93,8 @@ public final class CommandManager implements EventListener
      * Registers the specified command into the manager.
      *
      * @param command the command you wish to register
-     * @param <T>     a parent class to the command one
      */
-    public <T extends Command> void registerCommand(@NotNull T command)
+    public void registerCommand(@NotNull Command command)
     {
         String[] aliases = null;
         String description = null;
@@ -101,7 +103,7 @@ public final class CommandManager implements EventListener
         CommandAliases annoAliases = commandClass.getAnnotation(CommandAliases.class);
         if (annoAliases != null)
         {
-            aliases = annoAliases.value().split("|");
+            aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
         }
         CommandDescription annoDescription = commandClass.getAnnotation(CommandDescription.class);
         if (annoDescription != null)

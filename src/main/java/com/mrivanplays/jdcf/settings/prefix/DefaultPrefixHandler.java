@@ -66,7 +66,7 @@ public class DefaultPrefixHandler implements PrefixHandler
         catch (IOException ignored)
         {
         }
-        executorService.scheduleAtFixedRate(() -> savePrefixes(), 5, 30, TimeUnit.MINUTES);
+        executorService.scheduleAtFixedRate(this::savePrefixes, 5, 30, TimeUnit.MINUTES);
     }
 
     private void createFile()
