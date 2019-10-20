@@ -159,8 +159,7 @@ public final class CommandManager implements EventListener {
     // command execution handling and bot shutdown handling
     @Override
     public void onEvent(@Nonnull GenericEvent generic) {
-        if (generic.getClass().isAssignableFrom(GuildMessageReceivedEvent.class)) // checks if that's our event
-        {
+        if (generic.getClass().isAssignableFrom(GuildMessageReceivedEvent.class)) { // checks if that's our event
             // yes! thats the event we want
             GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) generic;
             if (event.getAuthor().isBot() || event.getMember() == null) {
@@ -192,8 +191,7 @@ public final class CommandManager implements EventListener {
                     }
                 }
             }
-            if (aliasPrefix.startsWith(prefix)) // checks if the first typed thing starts with the guild prefix
-            {
+            if (aliasPrefix.startsWith(prefix)) { // checks if the first typed thing starts with the guild prefix
                 String name = aliasPrefix.replace(prefix, "");
                 Optional<RegisteredCommand> commandOptional = getCommand(name);
                 if (commandOptional.isPresent()) {
