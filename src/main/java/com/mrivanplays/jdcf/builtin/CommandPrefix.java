@@ -54,7 +54,7 @@ public class CommandPrefix extends Command
         CommandSettings settings = commandManager.getSettings();
         if (args.size() == 0)
         {
-            context.getChannel().sendMessage(settings.getPrefixCommandEmbed().get()
+            context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())
                     .setDescription("Prefix is: " + settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong())).build()).queue();
             return;
         }
