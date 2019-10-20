@@ -113,22 +113,20 @@ public final class CommandArguments
      * Resolves the next argument to the specified resolver. The specified method decrements {@link
      * #size()} and if you run that method like that:
      *
-     * <h3>Usage example</h3>
-     *
-     * <pre> {@code
+     * <pre><code>
      * public void execute(CommandExecutionContext context, String alias, CommandArguments args)
      * {
-     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
+     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number -&#62; {
      *         // handling
-     *     }).orElse(failReason (lambda) {
-     *         // handling
-     *     });
-     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
-     *         // handling
-     *     }).orElse(failReason (lambda) {
+     *     }).orElse(failReason -&#62; {
      *         // handling
      *     });
-     * }}</pre>
+     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number -&#62; {
+     *         // handling
+     *     }).orElse(failReason -&#62; {
+     *         // handling
+     *     });
+     * }</code></pre>
      *
      * <p>The 2nd get will get the next argument after the 1st call so it won't be equal to the first
      * one. That's why 2nd or more arguments should be in the call before to have access to all of the
