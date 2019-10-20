@@ -107,7 +107,7 @@ public final class CommandArguments {
      * run that method like that:
      *
      * <pre><code>
-     * public void execute(CommandExecutionContext context, String alias, CommandArguments args)
+     * public void execute(CommandExecutionContext context, CommandArguments args)
      * {
      *     args.next(ArgumentResolvers.INTEGER).ifPresent(number -&#62; {
      *         // handling
