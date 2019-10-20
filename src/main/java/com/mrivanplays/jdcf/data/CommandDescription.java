@@ -35,14 +35,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Usage example:</h3>
  *
- * <pre>
- * {@code
- * @CommandDescription("This command does all sorts of things!")
+ * <pre> {@code
+ * &#64;CommandDescription("This command does all sorts of things!")
  * public class MyCommand extends Command
  * {
  *     // other code
- * }
- * } </pre>
+ * }}</pre>
  *
  * <p>tl;dr Give your command an awesome description!
  */

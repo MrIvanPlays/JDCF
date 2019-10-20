@@ -35,14 +35,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Usage example:</h3>
  *
- * <pre>
- * {@code
- * @CommandUsage("hello [world] (123)")
+ * <pre> {@code
+ * &#64;CommandUsage("hello [world] (123)")
  * public class MyCommand extends Command
  * {
  *     // other code
- * }
- * } </pre>
+ * }}</pre>
  *
  * <p>tl;dr Make your command have a usage!
  */

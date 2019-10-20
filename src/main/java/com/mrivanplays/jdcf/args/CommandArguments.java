@@ -128,8 +128,7 @@ public final class CommandArguments
      *     }).orElse(failReason (lambda) {
      *         // handling
      *     });
-     * }
-     * } </pre>
+     * }}</pre>
      *
      * <p>The 2nd get will get the next argument after the 1st call so it won't be equal to the first
      * one. That's why 2nd or more arguments should be in the call before to have access to all of the

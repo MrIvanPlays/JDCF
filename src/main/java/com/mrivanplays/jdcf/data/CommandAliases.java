@@ -36,9 +36,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Usage example:</h3>
  *
- * <pre>
- * {@code
- * @CommandAliases("alias1|alias2|alias3")
+ * <pre> {@code
+ * &#64;CommandAliases("alias1|alias2|alias3")
  * public class MyCommand extends Command
  * {
  *
@@ -48,8 +47,7 @@ import org.jetbrains.annotations.NotNull;
  *     }
  *
  *     // other code
- * }
- * }</pre>
+ * }}</pre>
  *
  * <p>Aliases should be represented like: "alias1|alias2|alias3"
  */
