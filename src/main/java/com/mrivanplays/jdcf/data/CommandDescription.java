@@ -33,17 +33,16 @@ import org.jetbrains.annotations.NotNull;
  * Represents a annotation, which represents description of a {@link com.mrivanplays.jdcf.Command}.
  * Should be annotated directly on the class implementing the parent command class like:
  *
- * <blockquote>
+ * <h3>Usage example:</h3>
  *
  * <pre>
- * <code>@CommandDescription("This command does all sorts of things!")</code>
+ * {@code
+ * @CommandDescription("This command does all sorts of things!")
  * public class MyCommand extends Command
  * {
  *     // other code
  * }
- * </pre>
- *
- * </blockquote>
+ * } </pre>
  *
  * <p>tl;dr Give your command an awesome description!
  */

@@ -34,10 +34,11 @@ import org.jetbrains.annotations.NotNull;
  * Alias is basically a (short) another name of a command. Should be annotated directly on the
  * class implementing the parent command class like:
  *
- * <blockquote>
+ * <h3>Usage example:</h3>
  *
  * <pre>
- * <code>@CommandAliases("alias1|alias2|alias3")</code>
+ * {@code
+ * @CommandAliases("alias1|alias2|alias3")
  * public class MyCommand extends Command
  * {
  *
@@ -48,9 +49,7 @@ import org.jetbrains.annotations.NotNull;
  *
  *     // other code
  * }
- * </pre>
- *
- * </blockquote>
+ * }</pre>
  *
  * <p>Aliases should be represented like: "alias1|alias2|alias3"
  */

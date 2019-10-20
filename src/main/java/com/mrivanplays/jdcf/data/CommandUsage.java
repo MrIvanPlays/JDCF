@@ -33,17 +33,16 @@ import org.jetbrains.annotations.NotNull;
  * Represents a annotation, which represents usage of a {@link com.mrivanplays.jdcf.Command}.
  * Should be annotated directly on the class implementing the parent command class like:
  *
- * <blockquote>
+ * <h3>Usage example:</h3>
  *
  * <pre>
- * <code>@CommandUsage("hello [world] (123)")</code>
+ * {@code
+ * @CommandUsage("hello [world] (123)")
  * public class MyCommand extends Command
  * {
  *     // other code
  * }
- * </pre>
- *
- * </blockquote>
+ * } </pre>
  *
  * <p>tl;dr Make your command have a usage!
  */
