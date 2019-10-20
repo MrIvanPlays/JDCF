@@ -36,12 +36,12 @@ import org.jetbrains.annotations.NotNull;
  * <blockquote>
  *
  * <pre>
- *         <code>@CommandDescription("This command does all sorts of things!")</code>
- *         public class MyCommand extends Command
- *         {
- *             // other code
- *         }
- *     </pre>
+ * <code>@CommandDescription("This command does all sorts of things!")</code>
+ * public class MyCommand extends Command
+ * {
+ *     // other code
+ * }
+ * </pre>
  *
  * </blockquote>
  *

@@ -37,18 +37,18 @@ import org.jetbrains.annotations.NotNull;
  * <blockquote>
  *
  * <pre>
- *         <code>@CommandAliases("alias1|alias2|alias3")</code>
- *         public class MyCommand extends Command
- *         {
+ * <code>@CommandAliases("alias1|alias2|alias3")</code>
+ * public class MyCommand extends Command
+ * {
  *
- *             public MyCommand() // assuming this will be empty
- *             {
- *                 super("commandname", Permission.MANAGE_SERVER);
- *             }
+ *     public MyCommand() // assuming this will be empty
+ *     {
+ *         super("commandname", Permission.MANAGE_SERVER);
+ *     }
  *
- *             // other code
- *         }
- *     </pre>
+ *     // other code
+ * }
+ * </pre>
  *
  * </blockquote>
  *

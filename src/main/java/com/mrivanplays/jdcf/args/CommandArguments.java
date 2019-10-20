@@ -116,18 +116,19 @@ public final class CommandArguments
      * <blockquote>
      *
      * <pre>
-     *   public void execute(CommandExecutionContext context, String alias, CommandArguments args) {
-     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
-     *       // handling
-     *     }).orElse(failReason (lambda) {
-     *       // handling
-     *     });
-     *     args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
-     *       // handling
-     *     }).orElse(failReason (lambda) {
-     *       // handling
-     *     });
-     *   }
+     *     public void execute(CommandExecutionContext context, String alias, CommandArguments args)
+     *     {
+     *         args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
+     *             // handling
+     *         }).orElse(failReason (lambda) {
+     *             // handling
+     *         });
+     *         args.next(ArgumentResolvers.INTEGER).ifPresent(number (lambda) {
+     *             // handling
+     *         }).orElse(failReason (lambda) {
+     *             // handling
+     *         });
+     *     }
      * </pre>
      *
      * </blockquote>
