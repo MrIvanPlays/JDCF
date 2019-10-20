@@ -23,26 +23,25 @@
 package com.mrivanplays.jdcf;
 
 import com.mrivanplays.jdcf.args.CommandArguments;
+
 import net.dv8tion.jda.api.Permission;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a registered command. A registered command is a command that was
- * registered into a command manager. In order to have easy access to all the
- * data for the command, this class takes in place, storing all the things
- * possible for a command.
+ * Represents a registered command. A registered command is a command that was registered into a command manager. In
+ * order to have easy access to all the data for the command, this class takes in place, storing all the things possible
+ * for a command.
  */
-public final class RegisteredCommand
-{
+public final class RegisteredCommand {
 
     private final Command command;
     private final String usage;
     private final String description;
     private final String[] aliases;
 
-    public RegisteredCommand(Command command, String usage, String description, String[] aliases)
-    {
+    public RegisteredCommand(Command command, String usage, String description, String[] aliases) {
         this.command = command;
         this.usage = usage;
         this.description = description;
@@ -55,8 +54,7 @@ public final class RegisteredCommand
      * @return name
      */
     @NotNull
-    public String getName()
-    {
+    public String getName() {
         return command.getName();
     }
 
@@ -66,8 +64,7 @@ public final class RegisteredCommand
      * @return permissions
      */
     @Nullable
-    public Permission[] getPermissions()
-    {
+    public Permission[] getPermissions() {
         return command.getPermissions();
     }
 
@@ -77,8 +74,7 @@ public final class RegisteredCommand
      * @return usage
      */
     @Nullable
-    public String getUsage()
-    {
+    public String getUsage() {
         return usage;
     }
 
@@ -88,8 +84,7 @@ public final class RegisteredCommand
      * @return description
      */
     @Nullable
-    public String getDescription()
-    {
+    public String getDescription() {
         return description;
     }
 
@@ -99,8 +94,7 @@ public final class RegisteredCommand
      * @return aliases
      */
     @Nullable
-    public String[] getAliases()
-    {
+    public String[] getAliases() {
         return aliases;
     }
 
@@ -110,8 +104,7 @@ public final class RegisteredCommand
      * @param context context
      * @param args    arguments
      */
-    public void execute(CommandExecutionContext context, CommandArguments args)
-    {
+    public void execute(CommandExecutionContext context, CommandArguments args) {
         command.execute(context, args);
     }
 }

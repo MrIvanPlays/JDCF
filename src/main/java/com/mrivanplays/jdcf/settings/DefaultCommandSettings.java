@@ -23,18 +23,18 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.mrivanplays.jdcf.settings.prefix.DefaultPrefixHandler;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+
 import java.awt.Color;
 import java.time.Instant;
 import java.util.concurrent.Executors;
-import net.dv8tion.jda.api.EmbedBuilder;
 
-public class DefaultCommandSettings
-{
+public class DefaultCommandSettings {
 
     private static final CommandSettings settings;
 
-    static
-    {
+    static {
         settings = new CommandSettings();
         settings.setEnableHelpCommand(false);
         settings.setEnableMentionInsteadPrefix(true);
@@ -49,8 +49,7 @@ public class DefaultCommandSettings
         settings.setPrefixHandler(new DefaultPrefixHandler(settings.getExecutorService()));
     }
 
-    public static CommandSettings get()
-    {
+    public static CommandSettings get() {
         return settings;
     }
 }

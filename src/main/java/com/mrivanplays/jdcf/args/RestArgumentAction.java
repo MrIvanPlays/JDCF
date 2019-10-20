@@ -22,21 +22,19 @@
 */
 package com.mrivanplays.jdcf.args;
 
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 /**
- * Represents a <i>rest</i> action, which comes role when the argument you wanted to get back in the
- * code chain is null. This provides a {@link #orElse(Consumer)} method, which is being called only
- * when there was no value present back.
+ * Represents a <i>rest</i> action, which comes role when the argument you wanted to get back in the code chain is null.
+ * This provides a {@link #orElse(Consumer)} method, which is being called only when there was no value present back.
  */
-public final class RestArgumentAction
-{
+public final class RestArgumentAction {
 
     private final FailReason failReason;
 
-    public RestArgumentAction(FailReason failReason)
-    {
+    public RestArgumentAction(FailReason failReason) {
         this.failReason = failReason;
     }
 
@@ -45,33 +43,27 @@ public final class RestArgumentAction
      *
      * @return <code>true</code> if present, <code>false</code> otherwise
      */
-    public boolean wasValuePresent()
-    {
+    public boolean wasValuePresent() {
         return failReason == FailReason.NO_FAIL_REASON;
     }
 
     /**
-     * The specified {@link Consumer} gets invoked with the {@link FailReason} when the value wasn't
-     * present.
+     * The specified {@link Consumer} gets invoked with the {@link FailReason} when the value wasn't present.
      *
      * @param consumer the consumer to run
      */
-    public void orElse(@NotNull Consumer<FailReason> consumer)
-    {
-        if (failReason != FailReason.NO_FAIL_REASON)
-        {
+    public void orElse(@NotNull Consumer<FailReason> consumer) {
+        if (failReason != FailReason.NO_FAIL_REASON) {
             consumer.accept(failReason);
         }
     }
 
     /**
-     * The specified {@link Runnable} gets invoked whatever the {@link FailReason} was when the value
-     * wasn't present.
+     * The specified {@link Runnable} gets invoked whatever the {@link FailReason} was when the value wasn't present.
      *
      * @param runnable the runnable to run
      */
-    public void orElse(@NotNull Runnable runnable)
-    {
+    public void orElse(@NotNull Runnable runnable) {
         orElse(failReason -> runnable.run());
     }
 }

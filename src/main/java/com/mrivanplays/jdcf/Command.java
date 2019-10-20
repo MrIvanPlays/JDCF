@@ -23,28 +23,26 @@
 package com.mrivanplays.jdcf;
 
 import com.mrivanplays.jdcf.args.CommandArguments;
+
 import net.dv8tion.jda.api.Permission;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a command. Extending classes may use the annotations located
- * in {@link com.mrivanplays.jdcf.data} to give more information about the
- * command itself (aliases, description, usage)
+ * Represents a command. Extending classes may use the annotations located in {@link com.mrivanplays.jdcf.data} to give
+ * more information about the command itself (aliases, description, usage)
  */
-public abstract class Command
-{
+public abstract class Command {
 
     private final String name;
     private final Permission[] permissions;
 
-    public Command(@NotNull String name)
-    {
+    public Command(@NotNull String name) {
         this(name, (Permission[]) null);
     }
 
-    public Command(@NotNull String name, @Nullable Permission... permissions)
-    {
+    public Command(@NotNull String name, @Nullable Permission... permissions) {
         this.name = name;
         this.permissions = permissions;
     }
@@ -55,30 +53,25 @@ public abstract class Command
      * @return name
      */
     @NotNull
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
     /**
-     * Returns the {@link Permission}s required to the author
-     * of the command for the command to be executed.
+     * Returns the {@link Permission}s required to the author of the command for the command to be executed.
      *
      * @return permission(s)
      */
     @Nullable
-    public Permission[] getPermissions()
-    {
+    public Permission[] getPermissions() {
         return permissions;
     }
 
     /**
-     * JDCF calls this method when the command was triggered from a message.
-     * This will always happen when the command name was prefixed with the
-     * bot's prefix. According to settings in {@link CommandManager} it also
-     * might happen when the bot was mentioned except of the bot prefix.
-     * Also according to settings in {@link CommandManager} prefixes may vary
-     * between servers.
+     * JDCF calls this method when the command was triggered from a message. This will always happen when the command
+     * name was prefixed with the bot's prefix. According to settings in {@link CommandManager} it also might happen
+     * when the bot was mentioned except of the bot prefix. Also according to settings in {@link CommandManager}
+     * prefixes may vary between servers.
      *
      * @param context data about the trigger
      * @param args    the arguments typed when triggered

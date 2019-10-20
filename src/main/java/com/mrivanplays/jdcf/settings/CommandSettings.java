@@ -23,18 +23,19 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Supplier;
+
 import net.dv8tion.jda.api.EmbedBuilder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
+
 /**
- * Represents a bunch of settings for the manager
- * and for the command.
+ * Represents a bunch of settings for the manager and for the command.
  */
-public final class CommandSettings
-{
+public final class CommandSettings {
 
     private PrefixHandler prefixHandler;
     private boolean enableHelpCommand;
@@ -53,8 +54,7 @@ public final class CommandSettings
      * @return prefix handler
      */
     @NotNull
-    public PrefixHandler getPrefixHandler()
-    {
+    public PrefixHandler getPrefixHandler() {
         return prefixHandler;
     }
 
@@ -63,8 +63,7 @@ public final class CommandSettings
      *
      * @param prefixHandler new prefix handler
      */
-    public void setPrefixHandler(@NotNull PrefixHandler prefixHandler)
-    {
+    public void setPrefixHandler(@NotNull PrefixHandler prefixHandler) {
         this.prefixHandler = prefixHandler;
     }
 
@@ -73,43 +72,36 @@ public final class CommandSettings
      *
      * @return true or false
      */
-    public boolean isEnableHelpCommand()
-    {
+    public boolean isEnableHelpCommand() {
         return enableHelpCommand;
     }
 
     /**
-     * Sets the help command enabled state. You should have on <b>all</b>
-     * of your commands the {@link com.mrivanplays.jdcf.data.CommandDescription}
-     * and {@link com.mrivanplays.jdcf.data.CommandUsage} annotations, or else
-     * the commands that don't have them won't be listed in the help.
+     * Sets the help command enabled state. You should have on <b>all</b> of your commands the {@link
+     * com.mrivanplays.jdcf.data.CommandDescription} and {@link com.mrivanplays.jdcf.data.CommandUsage} annotations, or
+     * else the commands that don't have them won't be listed in the help.
      *
      * @param enableHelpCommand value
      */
-    public void setEnableHelpCommand(boolean enableHelpCommand)
-    {
+    public void setEnableHelpCommand(boolean enableHelpCommand) {
         this.enableHelpCommand = enableHelpCommand;
     }
 
     /**
-     * Returns whenever the bot mention can be used instead of
-     * a prefix to run a command.
+     * Returns whenever the bot mention can be used instead of a prefix to run a command.
      *
      * @return true or false
      */
-    public boolean isEnableMentionInsteadPrefix()
-    {
+    public boolean isEnableMentionInsteadPrefix() {
         return enableMentionInsteadPrefix;
     }
 
     /**
-     * Sets whenever the bot mention can be used instead of a
-     * prefix to run a command.
+     * Sets whenever the bot mention can be used instead of a prefix to run a command.
      *
      * @param enableMentionInsteadPrefix value
      */
-    public void setEnableMentionInsteadPrefix(boolean enableMentionInsteadPrefix)
-    {
+    public void setEnableMentionInsteadPrefix(boolean enableMentionInsteadPrefix) {
         this.enableMentionInsteadPrefix = enableMentionInsteadPrefix;
     }
 
@@ -118,32 +110,27 @@ public final class CommandSettings
      *
      * @return value
      */
-    public boolean isEnablePrefixCommand()
-    {
+    public boolean isEnablePrefixCommand() {
         return enablePrefixCommand;
     }
 
     /**
-     * Sets if the prefix command is enabled. You may also set the prefix
-     * command embed.
+     * Sets if the prefix command is enabled. You may also set the prefix command embed.
      *
      * @param enablePrefixCommand value
      */
-    public void setEnablePrefixCommand(boolean enablePrefixCommand)
-    {
+    public void setEnablePrefixCommand(boolean enablePrefixCommand) {
         this.enablePrefixCommand = enablePrefixCommand;
     }
 
     /**
-     * Returns a {@link ScheduledExecutorService}. You are not forced to set it
-     * if you're gonna use a custom prefix handler as on current version (1.0.0)
-     * the only use is prefix saving to file.
+     * Returns a {@link ScheduledExecutorService}. You are not forced to set it if you're gonna use a custom prefix
+     * handler as on current version (1.0.0) the only use is prefix saving to file.
      *
      * @return executor
      */
     @NotNull
-    public ScheduledExecutorService getExecutorService()
-    {
+    public ScheduledExecutorService getExecutorService() {
         return executorService;
     }
 
@@ -152,22 +139,19 @@ public final class CommandSettings
      *
      * @param executorService executor
      */
-    public void setExecutorService(@NotNull ScheduledExecutorService executorService)
-    {
+    public void setExecutorService(@NotNull ScheduledExecutorService executorService) {
         this.executorService = executorService;
     }
 
     /**
-     * Returns the embed for the help command. You can set the title, color and
-     * footer, if other stuff are being modified the command will automatically
-     * override them. You are not forced to set it if you're not gonna use the
+     * Returns the embed for the help command. You can set the title, color and footer, if other stuff are being
+     * modified the command will automatically override them. You are not forced to set it if you're not gonna use the
      * bundled help command.
      *
      * @return embed for help command
      */
     @Nullable
-    public Supplier<EmbedBuilder> getHelpCommandEmbed()
-    {
+    public Supplier<EmbedBuilder> getHelpCommandEmbed() {
         return helpCommandEmbed;
     }
 
@@ -176,8 +160,7 @@ public final class CommandSettings
      *
      * @param helpCommandEmbed help command embed
      */
-    public void setHelpCommandEmbed(@Nullable Supplier<EmbedBuilder> helpCommandEmbed)
-    {
+    public void setHelpCommandEmbed(@Nullable Supplier<EmbedBuilder> helpCommandEmbed) {
         this.helpCommandEmbed = helpCommandEmbed;
     }
 
@@ -186,19 +169,17 @@ public final class CommandSettings
      *
      * @return number
      */
-    public int getCommandsPerHelpPage()
-    {
+    public int getCommandsPerHelpPage() {
         return commandsPerHelpPage;
     }
 
     /**
-     * Sets how much commands should be listed per page on help command.
-     * You are not forced to set it if you're not using the inbuilt help command.
+     * Sets how much commands should be listed per page on help command. You are not forced to set it if you're not
+     * using the inbuilt help command.
      *
      * @param commandsPerHelpPage number
      */
-    public void setCommandsPerHelpPage(int commandsPerHelpPage)
-    {
+    public void setCommandsPerHelpPage(int commandsPerHelpPage) {
         this.commandsPerHelpPage = commandsPerHelpPage;
     }
 
@@ -208,8 +189,7 @@ public final class CommandSettings
      * @return no permission embed
      */
     @NotNull
-    public Supplier<EmbedBuilder> getNoPermissionEmbed()
-    {
+    public Supplier<EmbedBuilder> getNoPermissionEmbed() {
         return noPermissionEmbed;
     }
 
@@ -218,20 +198,18 @@ public final class CommandSettings
      *
      * @param noPermissionEmbed no permission embed
      */
-    public void setNoPermissionEmbed(@NotNull Supplier<EmbedBuilder> noPermissionEmbed)
-    {
+    public void setNoPermissionEmbed(@NotNull Supplier<EmbedBuilder> noPermissionEmbed) {
         this.noPermissionEmbed = noPermissionEmbed;
     }
 
     /**
-     * Returns the prefix command embed. You are not forced to set it
-     * if you're not going to use the bundled prefix command.
+     * Returns the prefix command embed. You are not forced to set it if you're not going to use the bundled prefix
+     * command.
      *
      * @return prefix embed
      */
     @Nullable
-    public Supplier<EmbedBuilder> getPrefixCommandEmbed()
-    {
+    public Supplier<EmbedBuilder> getPrefixCommandEmbed() {
         return prefixCommandEmbed;
     }
 
@@ -240,8 +218,7 @@ public final class CommandSettings
      *
      * @param prefixCommandEmbed embed
      */
-    public void setPrefixCommandEmbed(@Nullable Supplier<EmbedBuilder> prefixCommandEmbed)
-    {
+    public void setPrefixCommandEmbed(@Nullable Supplier<EmbedBuilder> prefixCommandEmbed) {
         this.prefixCommandEmbed = prefixCommandEmbed;
     }
 
@@ -251,8 +228,7 @@ public final class CommandSettings
      * @return error embed
      */
     @NotNull
-    public Supplier<EmbedBuilder> getErrorEmbed()
-    {
+    public Supplier<EmbedBuilder> getErrorEmbed() {
         return errorEmbed;
     }
 
@@ -261,8 +237,7 @@ public final class CommandSettings
      *
      * @param errorEmbed embed
      */
-    public void setErrorEmbed(@NotNull Supplier<EmbedBuilder> errorEmbed)
-    {
+    public void setErrorEmbed(@NotNull Supplier<EmbedBuilder> errorEmbed) {
         this.errorEmbed = errorEmbed;
     }
 }

@@ -32,6 +32,15 @@ import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.settings.DefaultCommandSettings;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
+
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.ShutdownEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,48 +50,35 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ShutdownEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a command manager.
  */
-public final class CommandManager implements EventListener
-{
+public final class CommandManager implements EventListener {
 
     private static final Pattern ALIAS_SPLIT_PATTERN = Pattern.compile("\\|");
 
     private final List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
 
-    public CommandManager(JDA jda)
-    {
+    public CommandManager(JDA jda) {
         this(jda, DefaultCommandSettings.get());
     }
 
-    public CommandManager(JDA jda, CommandSettings settings)
-    {
+    public CommandManager(JDA jda, CommandSettings settings) {
         commands = new ArrayList<>();
         commandSettings = settings;
         jda.addEventListener(this);
         getSettings().getExecutorService().schedule(() -> {
-            if (getSettings().isEnableHelpCommand())
-            {
-                if (!getCommand("help").isPresent())
-                {
+            if (getSettings().isEnableHelpCommand()) {
+                if (!getCommand("help").isPresent()) {
                     EventWaiter eventWaiter = new EventWaiter();
                     jda.addEventListener(eventWaiter);
                     registerCommand(new CommandHelp(this, eventWaiter));
                 }
             }
-            if (getSettings().isEnablePrefixCommand())
-            {
-                if (!getCommand("prefix").isPresent())
-                {
+            if (getSettings().isEnablePrefixCommand()) {
+                if (!getCommand("prefix").isPresent()) {
                     registerCommand(new CommandPrefix(this));
                 }
             }
@@ -94,42 +90,35 @@ public final class CommandManager implements EventListener
      *
      * @param command the command you wish to register
      */
-    public void registerCommand(@NotNull Command command)
-    {
+    public void registerCommand(@NotNull Command command) {
         String[] aliases = null;
         String description = null;
         String usage = null;
         Class<? extends Command> commandClass = command.getClass();
         CommandAliases annoAliases = commandClass.getAnnotation(CommandAliases.class);
-        if (annoAliases != null)
-        {
+        if (annoAliases != null) {
             aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
         }
         CommandDescription annoDescription = commandClass.getAnnotation(CommandDescription.class);
-        if (annoDescription != null)
-        {
+        if (annoDescription != null) {
             description = annoDescription.value();
         }
         CommandUsage annoUsage = commandClass.getAnnotation(CommandUsage.class);
-        if (annoUsage != null)
-        {
+        if (annoUsage != null) {
             usage = annoUsage.value();
         }
         RegisteredCommand registeredCommand = new RegisteredCommand(command, usage, description, aliases);
-        if (!commands.contains(registeredCommand))
-        {
+        if (!commands.contains(registeredCommand)) {
             commands.add(registeredCommand);
         }
     }
 
     /**
-     * Returns the settings for all inbuilt things, handlers
-     * and stuff.
+     * Returns the settings for all inbuilt things, handlers and stuff.
      *
      * @return settings
      */
-    public CommandSettings getSettings()
-    {
+    public CommandSettings getSettings() {
         return commandSettings;
     }
 
@@ -138,8 +127,7 @@ public final class CommandManager implements EventListener
      *
      * @param settings the new settings you wish to set
      */
-    public void setSettings(CommandSettings settings)
-    {
+    public void setSettings(CommandSettings settings) {
         commandSettings = settings;
     }
 
@@ -148,42 +136,34 @@ public final class CommandManager implements EventListener
      *
      * @return registered commands
      */
-    public List<RegisteredCommand> getRegisteredCommands()
-    {
+    public List<RegisteredCommand> getRegisteredCommands() {
         return Collections.unmodifiableList(commands);
     }
 
     /**
-     * Retrieves the first command found which has the
-     * specified alias as alias or the specified alias
-     * is the command's name.
+     * Retrieves the first command found which has the specified alias as alias or the specified alias is the command's
+     * name.
      *
      * @param alias the command name/alias for the command you wish to get
      * @return optional of registered command if present, empty optional otherwise
      */
-    public Optional<RegisteredCommand> getCommand(String alias)
-    {
+    public Optional<RegisteredCommand> getCommand(String alias) {
         Optional<RegisteredCommand> nameSearch = commands.stream().filter(command -> command.getName().equalsIgnoreCase(alias)).findFirst();
-        if (nameSearch.isPresent())
-        {
+        if (nameSearch.isPresent()) {
             return nameSearch;
-        } else
-        {
-            return commands.stream().filter(command -> command.getAliases() != null
-                    && Arrays.stream(command.getAliases()).anyMatch(al -> al.equalsIgnoreCase(alias))).findFirst();
+        } else {
+            return commands.stream().filter(command -> command.getAliases() != null && Arrays.stream(command.getAliases()).anyMatch(al -> al.equalsIgnoreCase(alias))).findFirst();
         }
     }
 
     // command execution handling and bot shutdown handling
     @Override
-    public void onEvent(@Nonnull GenericEvent generic)
-    {
+    public void onEvent(@Nonnull GenericEvent generic) {
         if (generic.getClass().isAssignableFrom(GuildMessageReceivedEvent.class)) // checks if that's our event
         {
             // yes! thats the event we want
             GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) generic;
-            if (event.getAuthor().isBot() || event.getMember() == null)
-            {
+            if (event.getAuthor().isBot() || event.getMember() == null) {
                 // we don't want to handle if the author is bot or the message is a webhook message
                 // (event.getMember() is null if the message is webhook message)
                 return;
@@ -191,19 +171,14 @@ public final class CommandManager implements EventListener
             String prefix = commandSettings.getPrefixHandler().getPrefix(event.getGuild().getIdLong()); // retrieves the current guild prefix
             String[] content = event.getMessage().getContentRaw().split(" ");
             String aliasPrefix = content[0];
-            if (commandSettings.isEnableMentionInsteadPrefix())
-            {
+            if (commandSettings.isEnableMentionInsteadPrefix()) {
                 // checks if the first typed thing is a mention to our bot
-                if (aliasPrefix.equalsIgnoreCase(event.getJDA().getSelfUser().getAsMention()))
-                {
+                if (aliasPrefix.equalsIgnoreCase(event.getJDA().getSelfUser().getAsMention())) {
                     Optional<RegisteredCommand> commandOptional = getCommand(content[1]);
-                    if (commandOptional.isPresent())
-                    {
+                    if (commandOptional.isPresent()) {
                         RegisteredCommand command = commandOptional.get();
-                        if (command.getPermissions() != null)
-                        {
-                            if (!event.getMember().hasPermission(command.getPermissions()))
-                            {
+                        if (command.getPermissions() != null) {
+                            if (!event.getMember().hasPermission(command.getPermissions())) {
                                 event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
                                         .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                                 return;
@@ -221,13 +196,10 @@ public final class CommandManager implements EventListener
             {
                 String name = aliasPrefix.replace(prefix, "");
                 Optional<RegisteredCommand> commandOptional = getCommand(name);
-                if (commandOptional.isPresent())
-                {
+                if (commandOptional.isPresent()) {
                     RegisteredCommand command = commandOptional.get();
-                    if (command.getPermissions() != null)
-                    {
-                        if (!event.getMember().hasPermission(command.getPermissions()))
-                        {
+                    if (command.getPermissions() != null) {
+                        if (!event.getMember().hasPermission(command.getPermissions())) {
                             event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
                                     .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                             return;
@@ -241,18 +213,14 @@ public final class CommandManager implements EventListener
                 }
             }
         }
-        if (generic.getClass().isAssignableFrom(ShutdownEvent.class))
-        {
+        if (generic.getClass().isAssignableFrom(ShutdownEvent.class)) {
             // this event listening is basically to shutdown and terminate the
             // executor service we have and also save prefixes to a long-term storage
             ScheduledExecutorService executor = commandSettings.getExecutorService();
             executor.shutdownNow();
-            try
-            {
+            try {
                 executor.awaitTermination(500, TimeUnit.NANOSECONDS);
-            }
-            catch (InterruptedException e)
-            {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             // be aware that it's your fault if you don't implement savePrefixes method

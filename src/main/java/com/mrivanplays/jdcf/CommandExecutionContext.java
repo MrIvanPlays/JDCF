@@ -28,13 +28,13 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a generic data about the {@link Command} executed.
  */
-public final class CommandExecutionContext
-{
+public final class CommandExecutionContext {
 
     private final TextChannel channel;
     private final Member member;
@@ -47,8 +47,7 @@ public final class CommandExecutionContext
     public CommandExecutionContext(
             @NotNull TextChannel channel, @NotNull Member member, @NotNull User author,
             @NotNull JDA jda, @NotNull Message message, @NotNull Guild guild,
-            @NotNull String alias)
-    {
+            @NotNull String alias) {
         this.channel = channel;
         this.member = member;
         this.author = author;
@@ -64,8 +63,7 @@ public final class CommandExecutionContext
      * @return channel
      */
     @NotNull
-    public TextChannel getChannel()
-    {
+    public TextChannel getChannel() {
         return channel;
     }
 
@@ -77,8 +75,7 @@ public final class CommandExecutionContext
      * @return member
      */
     @NotNull
-    public Member getMember()
-    {
+    public Member getMember() {
         return member;
     }
 
@@ -90,8 +87,7 @@ public final class CommandExecutionContext
      * @return discord user, author
      */
     @NotNull
-    public User getAuthor()
-    {
+    public User getAuthor() {
         return author;
     }
 
@@ -101,32 +97,27 @@ public final class CommandExecutionContext
      * @return shard
      */
     @NotNull
-    public JDA getJda()
-    {
+    public JDA getJda() {
         return jda;
     }
 
     /**
-     * Returns the whole command {@link Message}. It is discouraged to be
-     * used for retrieving the text.
+     * Returns the whole command {@link Message}. It is discouraged to be used for retrieving the text.
      *
      * @return message
      */
     @NotNull
-    public Message getMessage()
-    {
+    public Message getMessage() {
         return message;
     }
 
     /**
-     * Returns the {@link Guild} where the {@link #getMember()} have executed
-     * the command.
+     * Returns the {@link Guild} where the {@link #getMember()} have executed the command.
      *
      * @return guild
      */
     @NotNull
-    public Guild getGuild()
-    {
+    public Guild getGuild() {
         return guild;
     }
 
@@ -136,8 +127,7 @@ public final class CommandExecutionContext
      * @return alias
      */
     @NotNull
-    public String getAlias()
-    {
+    public String getAlias() {
         return alias;
     }
 }

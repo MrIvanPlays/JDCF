@@ -24,20 +24,19 @@ package com.mrivanplays.jdcf.args;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a data about a specific argument
  */
-public final class ArgumentResolverContext
-{
+public final class ArgumentResolverContext {
 
     private final String argument;
     private final Guild guild;
     private final JDA jda;
 
-    public ArgumentResolverContext(@NotNull String argument, @NotNull Guild guild, @NotNull JDA jda)
-    {
+    public ArgumentResolverContext(@NotNull String argument, @NotNull Guild guild, @NotNull JDA jda) {
         this.argument = argument;
         this.guild = guild;
         this.jda = jda;
@@ -49,8 +48,7 @@ public final class ArgumentResolverContext
      * @return argument
      */
     @NotNull
-    public String getArgument()
-    {
+    public String getArgument() {
         return argument;
     }
 
@@ -60,8 +58,7 @@ public final class ArgumentResolverContext
      * @return guild
      */
     @NotNull
-    public Guild getGuild()
-    {
+    public Guild getGuild() {
         return guild;
     }
 
@@ -71,8 +68,7 @@ public final class ArgumentResolverContext
      * @return shard
      */
     @NotNull
-    public JDA getJda()
-    {
+    public JDA getJda() {
         return jda;
     }
 }

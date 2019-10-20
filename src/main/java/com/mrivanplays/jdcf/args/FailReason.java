@@ -23,11 +23,9 @@
 package com.mrivanplays.jdcf.args;
 
 /**
- * Represents a fail reason of why {@link RestArgumentAction#orElse(java.util.function.Consumer)}
- * got invoked
+ * Represents a fail reason of why {@link RestArgumentAction#orElse(java.util.function.Consumer)} got invoked
  */
-public enum FailReason
-{
+public enum FailReason {
 
     /**
      * The argument wasn't typed in the command.

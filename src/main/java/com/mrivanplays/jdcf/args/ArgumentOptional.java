@@ -22,19 +22,19 @@
 */
 package com.mrivanplays.jdcf.args;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a optional which contains things for our purpose and that's arguments.
  *
  * @param <T> argument type
  */
-public final class ArgumentOptional<T>
-{
+public final class ArgumentOptional<T> {
 
     /**
      * Creates a new argument optional. If the value given is null, the optional will be empty.
@@ -44,33 +44,29 @@ public final class ArgumentOptional<T>
      * @param <T>        argument type
      * @return argument optional if value not null, empty argument optional else
      */
-    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason)
-    {
+    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason) {
         return value != null ? new ArgumentOptional<>(value, failReason) : new ArgumentOptional<>(null, failReason);
     }
 
     private final T value;
     private final FailReason failReason;
 
-    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason)
-    {
+    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason) {
         this.value = value;
         this.failReason = failReason;
     }
 
     /**
-     * If value is being present, the executor will get executed and the return value will don't come
-     * in work, otherwise the return value, a <i>rest</i> argument action will execute its {@link
-     * RestArgumentAction#orElse(Consumer)} method if it was called.
+     * If value is being present, the executor will get executed and the return value will don't come in work, otherwise
+     * the return value, a <i>rest</i> argument action will execute its {@link RestArgumentAction#orElse(Consumer)}
+     * method if it was called.
      *
      * @param action executor of the argument
      * @return a <i>rest</i> argument action
      */
     @NotNull
-    public RestArgumentAction ifPresent(@NotNull Consumer<T> action)
-    {
-        if (isPresent())
-        {
+    public RestArgumentAction ifPresent(@NotNull Consumer<T> action) {
+        if (isPresent()) {
             action.accept(value);
         }
         return new RestArgumentAction(failReason);
@@ -81,23 +77,18 @@ public final class ArgumentOptional<T>
      *
      * @param mapper mapper for converting the current argument to another
      * @param <U>    new argument type
-     * @return argument optional with the new argument if present or a empty optional if the value was
-     * not present.
+     * @return argument optional with the new argument if present or a empty optional if the value was not present.
      */
     @NotNull
-    public <U> ArgumentOptional<U> map(@NotNull Function<T, U> mapper)
-    {
+    public <U> ArgumentOptional<U> map(@NotNull Function<T, U> mapper) {
         Objects.requireNonNull(mapper, "mapper");
-        if (isPresent())
-        {
+        if (isPresent()) {
             U newValue = mapper.apply(value);
-            if (newValue == null)
-            {
+            if (newValue == null) {
                 return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL);
             }
             return ArgumentOptional.of(newValue, failReason);
-        } else
-        {
+        } else {
             return ArgumentOptional.of(null, failReason);
         }
     }
@@ -107,22 +98,20 @@ public final class ArgumentOptional<T>
      *
      * @return <code>true</code> if value present, <code>false</code> otherwise
      */
-    public boolean isPresent()
-    {
+    public boolean isPresent() {
         return value != null;
     }
 
     /**
-     * Gets the specified value if present. If the value is not present, the method will throw a
-     * {@link NullPointerException}. It is required to use instead {@link #ifPresent(Consumer)} to
-     * access the value, which also provides you handling when the value is not present.
+     * Gets the specified value if present. If the value is not present, the method will throw a {@link
+     * NullPointerException}. It is required to use instead {@link #ifPresent(Consumer)} to access the value, which also
+     * provides you handling when the value is not present.
      *
      * @return value if present
      * @throws NullPointerException if value not present
      */
     @NotNull
-    public T get()
-    {
+    public T get() {
         Objects.requireNonNull(value, "Optional is empty");
         return value;
     }

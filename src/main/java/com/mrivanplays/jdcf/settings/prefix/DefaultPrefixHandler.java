@@ -24,6 +24,10 @@ package com.mrivanplays.jdcf.settings.prefix;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -35,89 +39,66 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class DefaultPrefixHandler implements PrefixHandler
-{
+public class DefaultPrefixHandler implements PrefixHandler {
 
     private final Map<Long, String> prefixes = new HashMap<>();
     private final File file;
     private final Gson gson;
     private final Type mapType;
 
-    public DefaultPrefixHandler(ScheduledExecutorService executorService)
-    {
-        mapType = new TypeToken<Map<Long, String>>()
-        {
+    public DefaultPrefixHandler(ScheduledExecutorService executorService) {
+        mapType = new TypeToken<Map<Long, String>>() {
         }.getType();
         file = new File("prefixes.json");
         gson = new Gson();
         createFile();
-        try (Reader reader = new FileReader(file))
-        {
+        try (Reader reader = new FileReader(file)) {
             Map<Long, String> map = gson.fromJson(reader, mapType);
-            if (map == null)
-            {
+            if (map == null) {
                 return;
             }
             prefixes.putAll(map);
-        }
-        catch (IOException ignored)
-        {
+        } catch (IOException ignored) {
         }
         executorService.scheduleAtFixedRate(this::savePrefixes, 5, 30, TimeUnit.MINUTES);
     }
 
-    private void createFile()
-    {
-        if (!file.exists())
-        {
-            try
-            {
+    private void createFile() {
+        if (!file.exists()) {
+            try {
                 file.createNewFile();
-            }
-            catch (IOException ignored)
-            {
+            } catch (IOException ignored) {
             }
         }
     }
 
     @Override
-    public @NotNull String getDefaultPrefix()
-    {
+    public @NotNull String getDefaultPrefix() {
         return "!";
     }
 
     @Override
-    public @Nullable String getGuildPrefix(long guildId)
-    {
+    public @Nullable String getGuildPrefix(long guildId) {
         return prefixes.get(guildId);
     }
 
     @Override
-    public void setGuildPrefix(@NotNull String prefix, long guildId)
-    {
-        if (!prefixes.containsKey(guildId))
-        {
+    public void setGuildPrefix(@NotNull String prefix, long guildId) {
+        if (!prefixes.containsKey(guildId)) {
             prefixes.put(guildId, prefix);
-        } else
-        {
+        } else {
             prefixes.replace(guildId, prefix);
         }
     }
 
     @Override
-    public void savePrefixes()
-    {
+    public void savePrefixes() {
         file.delete();
         createFile();
-        try (Writer writer = new FileWriter(file))
-        {
+        try (Writer writer = new FileWriter(file)) {
             writer.write(gson.toJson(prefixes, mapType));
-        }
-        catch (IOException ignored)
-        {
+        } catch (IOException ignored) {
         }
     }
 }

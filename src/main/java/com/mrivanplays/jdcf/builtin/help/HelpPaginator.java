@@ -24,54 +24,47 @@ package com.mrivanplays.jdcf.builtin.help;
 
 import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.util.EmbedUtil;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
-public class HelpPaginator
-{
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+public class HelpPaginator {
 
     private final List<EmbedBuilder> pages;
     private final Supplier<EmbedBuilder> errorEmbed;
 
     public HelpPaginator(List<RegisteredCommand> commands, int listedCommandsPerPage, Supplier<EmbedBuilder> helpCommandEmbed,
-                         Member commandExecutor, User author, Supplier<EmbedBuilder> errorEmbed)
-    {
+                         Member commandExecutor, User author, Supplier<EmbedBuilder> errorEmbed) {
         List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
-        for (int i = 0; i < commands.size(); i += listedCommandsPerPage)
-        {
+        for (int i = 0; i < commands.size(); i += listedCommandsPerPage) {
             EmbedBuilder embed = helpCommandEmbed.get();
-            for (RegisteredCommand includedInThisEmbed : commands.subList(i, Math.min(i + listedCommandsPerPage, commands.size())))
-            {
+            for (RegisteredCommand includedInThisEmbed : commands.subList(i, Math.min(i + listedCommandsPerPage, commands.size()))) {
                 String description = includedInThisEmbed.getDescription();
                 String usage = includedInThisEmbed.getUsage();
-                if (description == null || usage == null)
-                {
+                if (description == null || usage == null) {
                     continue;
                 }
-                if (includedInThisEmbed.getName().equalsIgnoreCase("help"))
-                {
+                if (includedInThisEmbed.getName().equalsIgnoreCase("help")) {
                     continue;
                 }
-                if (!hasPermission(commandExecutor, includedInThisEmbed.getPermissions()))
-                {
+                if (!hasPermission(commandExecutor, includedInThisEmbed.getPermissions())) {
                     continue;
                 }
                 embed.addField("`" + usage + "`", description, false);
             }
-            if (embed.getFields().isEmpty())
-            {
+            if (embed.getFields().isEmpty()) {
                 continue;
             }
             pagesWithCommands.add(embed);
         }
         List<EmbedBuilder> pages = new ArrayList<>();
-        for (int i = 0; i < pagesWithCommands.size(); i++)
-        {
+        for (int i = 0; i < pagesWithCommands.size(); i++) {
             EmbedBuilder embed = pagesWithCommands.get(i);
             pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size()));
         }
@@ -80,25 +73,19 @@ public class HelpPaginator
         pagesWithCommands.clear();
     }
 
-    private boolean hasPermission(Member member, Permission[] permissions)
-    {
+    private boolean hasPermission(Member member, Permission[] permissions) {
         return permissions == null || member.hasPermission(permissions);
     }
 
-    public EmbedBuilder getPage(int page)
-    {
-        try
-        {
+    public EmbedBuilder getPage(int page) {
+        try {
             return pages.get(page - 1);
-        }
-        catch (IndexOutOfBoundsException e)
-        {
+        } catch (IndexOutOfBoundsException e) {
             return errorEmbed.get().setDescription("Page #" + page + " does not exist");
         }
     }
 
-    public boolean hasNext(int current)
-    {
+    public boolean hasNext(int current) {
         return pages.size() > current;
     }
 }

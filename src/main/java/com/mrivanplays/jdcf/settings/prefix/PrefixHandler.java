@@ -28,8 +28,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a {@link com.mrivanplays.jdcf.Command} prefix handler.
  */
-public interface PrefixHandler
-{
+public interface PrefixHandler {
 
     /**
      * Returns the default command prefix of the bot.
@@ -40,8 +39,7 @@ public interface PrefixHandler
     String getDefaultPrefix();
 
     /**
-     * Returns the prefix, which belongs to the specified
-     * guild id.
+     * Returns the prefix, which belongs to the specified guild id.
      *
      * @param guildId the guild id
      * @return guild prefix
@@ -69,8 +67,7 @@ public interface PrefixHandler
      * @return guild prefix if found, else the default one
      */
     @NotNull
-    default String getPrefix(long guildId)
-    {
+    default String getPrefix(long guildId) {
         String guildPrefix = getGuildPrefix(guildId);
         return guildPrefix == null ? getDefaultPrefix() : guildPrefix;
     }
