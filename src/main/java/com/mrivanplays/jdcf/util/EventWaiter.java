@@ -52,6 +52,7 @@ public class EventWaiter implements EventListener
         }, 5, TimeUnit.MINUTES);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onEvent(@Nonnull GenericEvent genericEvent)
     {
@@ -77,11 +78,11 @@ public class EventWaiter implements EventListener
     private static class Waiting<T>
     {
 
-        public Class<T> waitingEvent;
-        public Predicate<T> filter;
-        public Consumer<T> onFilterPassed;
+        final Class<T> waitingEvent;
+        final Predicate<T> filter;
+        final Consumer<T> onFilterPassed;
 
-        public Waiting(Class<T> waitingEvent, Predicate<T> filter, Consumer<T> onFilterPassed)
+        Waiting(Class<T> waitingEvent, Predicate<T> filter, Consumer<T> onFilterPassed)
         {
             this.waitingEvent = waitingEvent;
             this.filter = filter;
