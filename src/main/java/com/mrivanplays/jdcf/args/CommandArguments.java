@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -107,8 +108,7 @@ public final class CommandArguments {
      * run that method like that:
      *
      * <pre><code>
-     * public void execute(CommandExecutionContext context, CommandArguments args)
-     * {
+     * public void execute(CommandExecutionContext context, CommandArguments args) {
      *     args.next(ArgumentResolvers.INTEGER).ifPresent(number -&#62; {
      *         // handling
      *     }).orElse(failReason -&#62; {
@@ -131,7 +131,8 @@ public final class CommandArguments {
      * type parsed is null.
      */
     @NotNull
-    public <T> ArgumentOptional<T> next(ArgumentResolver<T> resolver) {
+    public <T> ArgumentOptional<T> next(@NotNull ArgumentResolver<T> resolver) {
+        Objects.requireNonNull(resolver, "resolver");
         if (args.size() == 0) {
             return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED);
         }

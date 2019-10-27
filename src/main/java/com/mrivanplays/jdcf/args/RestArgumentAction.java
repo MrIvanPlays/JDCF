@@ -24,6 +24,7 @@ package com.mrivanplays.jdcf.args;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -50,11 +51,12 @@ public final class RestArgumentAction {
     /**
      * The specified {@link Consumer} gets invoked with the {@link FailReason} when the value wasn't present.
      *
-     * @param consumer the consumer to run
+     * @param toRun the action to run
      */
-    public void orElse(@NotNull Consumer<FailReason> consumer) {
+    public void orElse(@NotNull Consumer<FailReason> toRun) {
+        Objects.requireNonNull(toRun, "toRun");
         if (failReason != FailReason.NO_FAIL_REASON) {
-            consumer.accept(failReason);
+            toRun.accept(failReason);
         }
     }
 
@@ -64,6 +66,7 @@ public final class RestArgumentAction {
      * @param runnable the runnable to run
      */
     public void orElse(@NotNull Runnable runnable) {
+        Objects.requireNonNull(runnable, "runnable");
         orElse(failReason -> runnable.run());
     }
 }

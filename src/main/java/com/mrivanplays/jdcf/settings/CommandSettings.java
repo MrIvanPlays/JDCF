@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Represents a bunch of settings for the manager and for the command.
  */
@@ -64,7 +66,7 @@ public final class CommandSettings {
      * @param prefixHandler new prefix handler
      */
     public void setPrefixHandler(@NotNull PrefixHandler prefixHandler) {
-        this.prefixHandler = prefixHandler;
+        this.prefixHandler = requireNonNull(prefixHandler, "prefixHandler");
     }
 
     /**
@@ -140,7 +142,7 @@ public final class CommandSettings {
      * @param executorService executor
      */
     public void setExecutorService(@NotNull ScheduledExecutorService executorService) {
-        this.executorService = executorService;
+        this.executorService = requireNonNull(executorService, "executorService");
     }
 
     /**
@@ -199,7 +201,7 @@ public final class CommandSettings {
      * @param noPermissionEmbed no permission embed
      */
     public void setNoPermissionEmbed(@NotNull Supplier<EmbedBuilder> noPermissionEmbed) {
-        this.noPermissionEmbed = noPermissionEmbed;
+        this.noPermissionEmbed = requireNonNull(noPermissionEmbed, "noPermissionEmbed");
     }
 
     /**
@@ -238,6 +240,6 @@ public final class CommandSettings {
      * @param errorEmbed embed
      */
     public void setErrorEmbed(@NotNull Supplier<EmbedBuilder> errorEmbed) {
-        this.errorEmbed = errorEmbed;
+        this.errorEmbed = requireNonNull(errorEmbed, "errorEmbed");
     }
 }

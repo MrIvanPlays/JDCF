@@ -32,6 +32,7 @@ import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.settings.DefaultCommandSettings;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
+import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GenericEvent;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,18 +63,19 @@ public final class CommandManager implements EventListener {
     private final List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
 
-    public CommandManager(JDA jda) {
+    public CommandManager(@NotNull JDA jda) {
         this(jda, DefaultCommandSettings.get());
     }
 
-    public CommandManager(JDA jda, CommandSettings settings) {
+    public CommandManager(@NotNull JDA jda, @NotNull CommandSettings settings) {
+        Objects.requireNonNull(jda, "JDA instance cannot be null");
         commands = new ArrayList<>();
-        commandSettings = settings;
+        setSettings(settings);
         jda.addEventListener(this);
         getSettings().getExecutorService().schedule(() -> {
             if (getSettings().isEnableHelpCommand()) {
                 if (!getCommand("help").isPresent()) {
-                    EventWaiter eventWaiter = new EventWaiter();
+                    EventWaiter eventWaiter = new EventWaiter(getSettings().getExecutorService());
                     jda.addEventListener(eventWaiter);
                     registerCommand(new CommandHelp(this, eventWaiter));
                 }
@@ -91,6 +94,7 @@ public final class CommandManager implements EventListener {
      * @param command the command you wish to register
      */
     public void registerCommand(@NotNull Command command) {
+        Objects.requireNonNull(command, "Command registered cannot be null");
         String[] aliases = null;
         String description = null;
         String usage = null;
@@ -113,11 +117,28 @@ public final class CommandManager implements EventListener {
         }
     }
 
+    public void registerCommands(@NotNull Command... commands) {
+        Objects.requireNonNull(commands, "Commands registered cannot be null");
+        Utils.checkState(commands.length != 0, "Commands registered cannot be empty");
+        for (Command command : commands) {
+            registerCommand(command);
+        }
+    }
+
+    public void registerCommands(@NotNull List<Command> commands) {
+        Objects.requireNonNull(commands, "Commands registered cannot be null");
+        Utils.checkState(!commands.isEmpty(), "Commands registered cannot be empty");
+        for (Command command : commands) {
+            registerCommand(command);
+        }
+    }
+
     /**
      * Returns the settings for all inbuilt things, handlers and stuff.
      *
      * @return settings
      */
+    @NotNull
     public CommandSettings getSettings() {
         return commandSettings;
     }
@@ -127,8 +148,8 @@ public final class CommandManager implements EventListener {
      *
      * @param settings the new settings you wish to set
      */
-    public void setSettings(CommandSettings settings) {
-        commandSettings = settings;
+    public void setSettings(@NotNull CommandSettings settings) {
+        commandSettings = Objects.requireNonNull(settings, "settings");
     }
 
     /**
@@ -147,7 +168,9 @@ public final class CommandManager implements EventListener {
      * @param alias the command name/alias for the command you wish to get
      * @return optional of registered command if present, empty optional otherwise
      */
-    public Optional<RegisteredCommand> getCommand(String alias) {
+    public Optional<RegisteredCommand> getCommand(@NotNull String alias) {
+        Objects.requireNonNull(alias, "alias");
+        Utils.checkState(alias.length() != 0, "empty alias");
         Optional<RegisteredCommand> nameSearch = commands.stream().filter(command -> command.getName().equalsIgnoreCase(alias)).findFirst();
         if (nameSearch.isPresent()) {
             return nameSearch;

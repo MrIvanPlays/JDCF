@@ -29,6 +29,8 @@ import net.dv8tion.jda.api.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * Represents a command. Extending classes may use the annotations located in {@link com.mrivanplays.jdcf.data} to give
  * more information about the command itself (aliases, description, usage)
@@ -43,7 +45,7 @@ public abstract class Command {
     }
 
     public Command(@NotNull String name, @Nullable Permission... permissions) {
-        this.name = name;
+        this.name = Objects.requireNonNull(name, "name");
         this.permissions = permissions;
     }
 

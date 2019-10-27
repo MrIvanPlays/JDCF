@@ -45,7 +45,7 @@ public final class ArgumentOptional<T> {
      * @return argument optional if value not null, empty argument optional else
      */
     public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason) {
-        return value != null ? new ArgumentOptional<>(value, failReason) : new ArgumentOptional<>(null, failReason);
+        return new ArgumentOptional<>(value, failReason);
     }
 
     private final T value;
@@ -66,6 +66,7 @@ public final class ArgumentOptional<T> {
      */
     @NotNull
     public RestArgumentAction ifPresent(@NotNull Consumer<T> action) {
+        Objects.requireNonNull(action, "action");
         if (isPresent()) {
             action.accept(value);
         }
