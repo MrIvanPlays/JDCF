@@ -92,4 +92,6 @@ public static void main(String[] args) {
 }
 ```
 
+More examples can be found [here](https://github.com/MrIvanPlays/JDCF/tree/master/src/test/java/com/mrivanplays/jdcf/examples)
+
 I think you can figure out the other things yourself. For any questions you can ask me on Discord showed up.

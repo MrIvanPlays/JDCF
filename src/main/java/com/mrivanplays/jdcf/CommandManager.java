@@ -111,12 +111,14 @@ public final class CommandManager implements EventListener {
         if (annoUsage != null) {
             usage = annoUsage.value();
         }
-        RegisteredCommand registeredCommand = new RegisteredCommand(command, usage, description, aliases);
-        if (!commands.contains(registeredCommand)) {
-            commands.add(registeredCommand);
-        }
+        registerCommand(new RegisteredCommand(command, usage, description, aliases));
     }
 
+    /**
+     * Registers the specified command array into the manager
+     *
+     * @param commands the commands you want to register
+     */
     public void registerCommands(@NotNull Command... commands) {
         Objects.requireNonNull(commands, "Commands registered cannot be null");
         Utils.checkState(commands.length != 0, "Commands registered cannot be empty");
@@ -125,11 +127,28 @@ public final class CommandManager implements EventListener {
         }
     }
 
+    /**
+     * Registers the specified command list into the manager
+     *
+     * @param commands the commands you want to register
+     */
     public void registerCommands(@NotNull List<Command> commands) {
         Objects.requireNonNull(commands, "Commands registered cannot be null");
         Utils.checkState(!commands.isEmpty(), "Commands registered cannot be empty");
         for (Command command : commands) {
             registerCommand(command);
+        }
+    }
+
+    /**
+     * Registers the specified {@link RegisteredCommand} object into the manager.
+     *
+     * @param registeredCommand the command you want to register
+     */
+    public void registerCommand(@NotNull RegisteredCommand registeredCommand) {
+        Objects.requireNonNull(registeredCommand, "registeredCommand");
+        if (!commands.contains(registeredCommand)) {
+            commands.add(registeredCommand);
         }
     }
 
