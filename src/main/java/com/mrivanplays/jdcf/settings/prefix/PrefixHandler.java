@@ -39,6 +39,13 @@ public interface PrefixHandler {
     String getDefaultPrefix();
 
     /**
+     * Sets a new default prefix of the bot.
+     *
+     * @param defaultPrefix prefix
+     */
+    void setDefaultPrefix(@NotNull String defaultPrefix);
+
+    /**
      * Returns the prefix, which belongs to the specified guild id.
      *
      * @param guildId the guild id

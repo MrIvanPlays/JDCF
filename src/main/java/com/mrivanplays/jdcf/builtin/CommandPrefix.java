@@ -67,7 +67,7 @@ public class CommandPrefix extends Command {
                 }
                 args.nextString().ifPresent(prefix -> {
                     commandManager.getSettings().getPrefixHandler().setGuildPrefix(prefix, context.getGuild().getIdLong());
-                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(),
+                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getSuccessEmbed().get(),
                             context.getAuthor()).setDescription("Prefix successfully changed to: " + prefix).build()).queue();
                 }).orElse(failReason -> {
                     if (failReason == FailReason.ARGUMENT_NOT_TYPED) {

@@ -33,6 +33,7 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class HelpPaginator {
 
@@ -42,21 +43,14 @@ public class HelpPaginator {
     public HelpPaginator(List<RegisteredCommand> commands, int listedCommandsPerPage, Supplier<EmbedBuilder> helpCommandEmbed,
                          Member commandExecutor, User author, Supplier<EmbedBuilder> errorEmbed) {
         List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
+        List<RegisteredCommand> filteredCommands = commands.stream()
+                .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null
+                        && !cmd.getName().equalsIgnoreCase("help") && hasPermission(commandExecutor, cmd.getPermissions()))
+                .collect(Collectors.toList());
         for (int i = 0; i < commands.size(); i += listedCommandsPerPage) {
             EmbedBuilder embed = helpCommandEmbed.get();
-            for (RegisteredCommand includedInThisEmbed : commands.subList(i, Math.min(i + listedCommandsPerPage, commands.size()))) {
-                String description = includedInThisEmbed.getDescription();
-                String usage = includedInThisEmbed.getUsage();
-                if (description == null || usage == null) {
-                    continue;
-                }
-                if (includedInThisEmbed.getName().equalsIgnoreCase("help")) {
-                    continue;
-                }
-                if (!hasPermission(commandExecutor, includedInThisEmbed.getPermissions())) {
-                    continue;
-                }
-                embed.addField("`" + usage + "`", description, false);
+            for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + listedCommandsPerPage, filteredCommands.size()))) {
+                embed.addField("`" + in.getUsage() + "`", in.getDescription(), false);
             }
             if (embed.getFields().isEmpty()) {
                 continue;

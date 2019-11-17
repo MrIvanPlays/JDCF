@@ -46,6 +46,7 @@ public class DefaultCommandSettings {
                         .setDescription("You don't have permission to perform this command."));
         settings.setPrefixCommandEmbed(() -> new EmbedBuilder().setColor(Color.BLUE).setTimestamp(Instant.now()).setTitle("Prefix"));
         settings.setErrorEmbed(() -> new EmbedBuilder().setTimestamp(Instant.now()).setColor(Color.RED).setTitle("Error"));
+        settings.setSuccessEmbed(() -> new EmbedBuilder().setTimestamp(Instant.now()).setColor(Color.GREEN).setTitle("Success"));
         settings.setPrefixHandler(new DefaultPrefixHandler(settings.getExecutorService()));
     }
 

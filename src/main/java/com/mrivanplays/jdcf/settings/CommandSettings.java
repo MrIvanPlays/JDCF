@@ -49,6 +49,7 @@ public final class CommandSettings {
     private Supplier<EmbedBuilder> noPermissionEmbed;
     private Supplier<EmbedBuilder> prefixCommandEmbed;
     private Supplier<EmbedBuilder> errorEmbed;
+    private Supplier<EmbedBuilder> successEmbed;
 
     /**
      * Returns the prefix handler.
@@ -241,5 +242,24 @@ public final class CommandSettings {
      */
     public void setErrorEmbed(@NotNull Supplier<EmbedBuilder> errorEmbed) {
         this.errorEmbed = requireNonNull(errorEmbed, "errorEmbed");
+    }
+
+    /**
+     * Returns the success embed
+     *
+     * @return success embed
+     */
+    @NotNull
+    public Supplier<EmbedBuilder> getSuccessEmbed() {
+        return successEmbed;
+    }
+
+    /**
+     * Sets the success embed. Usage is being in the "prefix set" command.
+     *
+     * @param successEmbed embed
+     */
+    public void setSuccessEmbed(@NotNull Supplier<EmbedBuilder> successEmbed) {
+        this.successEmbed = requireNonNull(successEmbed, "successEmbed");
     }
 }

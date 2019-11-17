@@ -49,6 +49,7 @@ public class DefaultPrefixHandler implements PrefixHandler {
     private final File file;
     private final Gson gson;
     private final Type mapType;
+    private String defaultPrefix;
 
     public DefaultPrefixHandler(ScheduledExecutorService executorService) {
         mapType = new TypeToken<Map<Long, String>>() {
@@ -78,7 +79,15 @@ public class DefaultPrefixHandler implements PrefixHandler {
 
     @Override
     public @NotNull String getDefaultPrefix() {
-        return "!";
+        if (defaultPrefix == null) {
+            setDefaultPrefix("!");
+        }
+        return defaultPrefix;
+    }
+
+    @Override
+    public void setDefaultPrefix(@NotNull String defaultPrefix) {
+        this.defaultPrefix = Objects.requireNonNull(defaultPrefix, "defaultPrefix");
     }
 
     @Override
