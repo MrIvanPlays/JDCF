@@ -41,19 +41,22 @@ public final class ArgumentOptional<T> {
      *
      * @param value      the value of which you want argument optional
      * @param failReason the fail reason of why this argument optional would fail
+     * @param argument   argument typed. Can be null
      * @param <T>        argument type
      * @return argument optional if value not null, empty argument optional else
      */
-    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason) {
-        return new ArgumentOptional<>(value, failReason);
+    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason, @Nullable String argument) {
+        return new ArgumentOptional<>(value, failReason, argument);
     }
 
     private final T value;
     private final FailReason failReason;
+    private String argument;
 
-    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason) {
+    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason, @Nullable String argument) {
         this.value = value;
         this.failReason = failReason;
+        this.argument = argument;
     }
 
     /**
@@ -70,7 +73,7 @@ public final class ArgumentOptional<T> {
         if (isPresent()) {
             action.accept(value);
         }
-        return new RestArgumentAction(failReason);
+        return new RestArgumentAction(failReason, argument);
     }
 
     /**
@@ -86,11 +89,11 @@ public final class ArgumentOptional<T> {
         if (isPresent()) {
             U newValue = mapper.apply(value);
             if (newValue == null) {
-                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL);
+                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument);
             }
-            return ArgumentOptional.of(newValue, failReason);
+            return ArgumentOptional.of(newValue, failReason, argument);
         } else {
-            return ArgumentOptional.of(null, failReason);
+            return ArgumentOptional.of(null, failReason, argument);
         }
     }
 

@@ -25,6 +25,7 @@ package com.mrivanplays.jdcf.args;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -34,9 +35,11 @@ import java.util.function.Consumer;
 public final class RestArgumentAction {
 
     private final FailReason failReason;
+    private String argument;
 
-    public RestArgumentAction(FailReason failReason) {
+    public RestArgumentAction(FailReason failReason, String argument) {
         this.failReason = failReason;
+        this.argument = argument;
     }
 
     /**
@@ -57,6 +60,13 @@ public final class RestArgumentAction {
         Objects.requireNonNull(toRun, "toRun");
         if (failReason != FailReason.NO_FAIL_REASON) {
             toRun.accept(failReason);
+        }
+    }
+
+    public void orElse(@NotNull BiConsumer<FailReason, String> toRun) {
+        Objects.requireNonNull(toRun, "toRun");
+        if (failReason != FailReason.NO_FAIL_REASON) {
+            toRun.accept(failReason, argument);
         }
     }
 

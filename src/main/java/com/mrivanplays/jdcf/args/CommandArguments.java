@@ -134,16 +134,20 @@ public final class CommandArguments {
     public <T> ArgumentOptional<T> next(@NotNull ArgumentResolver<T> resolver) {
         Objects.requireNonNull(resolver, "resolver");
         if (args.size() == 0) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+        }
+        String argument = nextUnsafe();
+        if (argument == null) {
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
         }
         try {
-            T resolved = resolver.resolve(new ArgumentResolverContext(nextUnsafe(), guild, jda));
+            T resolved = resolver.resolve(new ArgumentResolverContext(argument, guild, jda));
             if (resolved == null) {
-                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL);
+                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument);
             }
-            return ArgumentOptional.of(resolved, FailReason.NO_FAIL_REASON);
+            return ArgumentOptional.of(resolved, FailReason.NO_FAIL_REASON, argument);
         } catch (Throwable error) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NOT_TYPE);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NOT_TYPE, argument);
         }
     }
 
@@ -155,9 +159,13 @@ public final class CommandArguments {
     @NotNull
     public ArgumentOptional<String> nextString() {
         if (args.size() == 0) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
         }
-        return ArgumentOptional.of(nextUnsafe(), FailReason.NO_FAIL_REASON);
+        String argument = nextUnsafe();
+        if (argument == null) {
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+        }
+        return ArgumentOptional.of(argument, FailReason.NO_FAIL_REASON, argument);
     }
 
     @NotNull

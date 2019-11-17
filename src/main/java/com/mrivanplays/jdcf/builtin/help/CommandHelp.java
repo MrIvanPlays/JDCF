@@ -25,6 +25,7 @@ package com.mrivanplays.jdcf.builtin.help;
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.CommandManager;
+import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.args.FailReason;
 import com.mrivanplays.jdcf.settings.CommandSettings;
@@ -109,7 +110,7 @@ public class CommandHelp extends Command {
                     }
                 }
             });
-        }).orElse(failReason -> {
+        }).orElse((failReason, parsed) -> {
             if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
                 channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
                     if (paginator.hasNext(1)) {
@@ -127,42 +128,42 @@ public class CommandHelp extends Command {
                 return;
             }
             if (failReason == FailReason.ARGUMENT_PARSED_NOT_TYPE) {
-                args.next(arg -> commandManager.getCommand(arg.getArgument()).orElse(null)).ifPresent(command -> {
-                    if (command.getPermissions() != null && !context.getMember().hasPermission(command.getPermissions())) {
-                        context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
-                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                RegisteredCommand command = commandManager.getCommand(parsed).orElse(null);
+                if (command == null) {
+                    EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
+                    channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                            .setDescription("You should type either a page number or a command name.").build())
+                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+                if (command.getPermissions() != null && !context.getMember().hasPermission(command.getPermissions())) {
+                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
+                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+                if (command.getUsage() == null || command.getDescription() == null) {
+                    if (command.getName().equalsIgnoreCase("help")) {
+                        channel.sendMessage(
+                                context.getAuthor().getAsMention() + ", can I ask you what can a help command do except provide help for commands?")
+                                .queue();
                         return;
                     }
-                    if (command.getUsage() == null || command.getDescription() == null) {
-                        if (command.getName().equalsIgnoreCase("help")) {
-                            channel.sendMessage(
-                                    context.getAuthor().getAsMention() + ", can I ask you what can a help command do except provide help for commands?")
-                                    .queue();
-                            return;
-                        }
-                        EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                        channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                                .setDescription("This command hasn't got a description or a usage.").build())
-                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                        return;
-                    }
-                    EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
-                    helpCommandEmbed.addField("Usage", "`" + command.getUsage() + "`", true);
-                    helpCommandEmbed.addField("Description", "`" + command.getDescription() + "`", true);
-                    if (command.getAliases() != null) {
-                        helpCommandEmbed.addField("Aliases", String.join(", ", command.getAliases()), true);
-                    }
-                }).orElse(scFailReason -> {
-                    if (scFailReason == FailReason.ARGUMENT_PARSED_NULL) {
-                        EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                        channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                                .setDescription("You should type either a page number or a command name.").build())
-                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                    }
-                });
+                    EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
+                    channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                            .setDescription("This command hasn't got a description or a usage.").build())
+                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+                EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
+                helpCommandEmbed.addField("Usage", "`" + command.getUsage() + "`", true);
+                helpCommandEmbed.addField("Description", "`" + command.getDescription() + "`", true);
+                if (command.getAliases() != null) {
+                    helpCommandEmbed.addField("Aliases", String.join(", ", command.getAliases()), true);
+                }
+                channel.sendMessage(helpCommandEmbed.build()).queue();
             }
         });
     }
