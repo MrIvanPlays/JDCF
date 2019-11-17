@@ -85,7 +85,7 @@ public final class CommandManager implements EventListener {
                     registerCommand(new CommandPrefix(this));
                 }
             }
-        }, 5, TimeUnit.SECONDS);
+        }, 1, TimeUnit.SECONDS);
     }
 
     /**

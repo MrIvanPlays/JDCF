@@ -23,6 +23,7 @@
 package com.mrivanplays.jdcf.builtin.help;
 
 import com.mrivanplays.jdcf.RegisteredCommand;
+import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -35,21 +36,19 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class HelpPaginator {
+class HelpPaginator {
 
     private final List<EmbedBuilder> pages;
     private final Supplier<EmbedBuilder> errorEmbed;
 
-    public HelpPaginator(List<RegisteredCommand> commands, int listedCommandsPerPage, Supplier<EmbedBuilder> helpCommandEmbed,
-                         Member commandExecutor, User author, Supplier<EmbedBuilder> errorEmbed) {
+    HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, Member commandExecutor, User author) {
         List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
         List<RegisteredCommand> filteredCommands = commands.stream()
-                .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null
-                        && !cmd.getName().equalsIgnoreCase("help") && hasPermission(commandExecutor, cmd.getPermissions()))
+                .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
                 .collect(Collectors.toList());
-        for (int i = 0; i < commands.size(); i += listedCommandsPerPage) {
-            EmbedBuilder embed = helpCommandEmbed.get();
-            for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + listedCommandsPerPage, filteredCommands.size()))) {
+        for (int i = 0; i < commands.size(); i += settings.getCommandsPerHelpPage()) {
+            EmbedBuilder embed = settings.getHelpCommandEmbed().get();
+            for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + settings.getCommandsPerHelpPage(), filteredCommands.size()))) {
                 embed.addField("`" + in.getUsage() + "`", in.getDescription(), false);
             }
             if (embed.getFields().isEmpty()) {
@@ -63,7 +62,7 @@ public class HelpPaginator {
             pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size()));
         }
         this.pages = pages;
-        this.errorEmbed = errorEmbed;
+        this.errorEmbed = settings.getErrorEmbed();
         pagesWithCommands.clear();
     }
 
@@ -71,7 +70,7 @@ public class HelpPaginator {
         return permissions == null || member.hasPermission(permissions);
     }
 
-    public EmbedBuilder getPage(int page) {
+    EmbedBuilder getPage(int page) {
         try {
             return pages.get(page - 1);
         } catch (IndexOutOfBoundsException e) {
@@ -79,7 +78,7 @@ public class HelpPaginator {
         }
     }
 
-    public boolean hasNext(int current) {
+    boolean hasNext(int current) {
         return pages.size() > current;
     }
 }

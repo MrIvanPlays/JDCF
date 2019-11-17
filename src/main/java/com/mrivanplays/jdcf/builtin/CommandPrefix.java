@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-@CommandDescription("Shows the prefix of the bot")
+@CommandDescription("Performs an action for the bot's command prefix, depending on what arguments are being specified.")
 @CommandUsage("prefix (set [new prefix])")
 public class CommandPrefix extends Command {
 

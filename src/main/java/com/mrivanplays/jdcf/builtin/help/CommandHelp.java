@@ -64,27 +64,7 @@ public class CommandHelp extends Command {
         CommandSettings settings = commandManager.getSettings();
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
-        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings.getCommandsPerHelpPage(), settings.getHelpCommandEmbed(),
-                context.getMember(), context.getAuthor(), settings.getErrorEmbed());
-        if (args.size() == 0) {
-            channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
-                if (paginator.hasNext(1)) {
-                    message.addReaction(arrowRight).queue();
-                    eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
-                        ReactionEmote emote = event.getReactionEmote();
-                        return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
-                                && !emote.isEmote())
-                                && (arrowRight.equals(emote.getName()));
-                    }, event -> {
-                        handleAction(message, channel, false, paginator, 1, author.getIdLong());
-                    }, () -> {
-                        message.clearReactions().queue();
-                        message.editMessage(settings.getHelpCommandEmbed().get().setDescription("Listening for reaction stopped").build()).queue();
-                    });
-                }
-            });
-            return;
-        }
+        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings, context.getMember(), context.getAuthor());
         args.nextInt().ifPresent(pageNumber -> {
             channel.sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
                 if (!message.getEmbeds().isEmpty()) {
@@ -107,15 +87,11 @@ public class CommandHelp extends Command {
                                 }, event -> {
                                     ReactionEmote emote = event.getReactionEmote();
                                     if (emote.getName().equals(arrowLeft)) {
-                                        handleAction(message, channel, true, paginator, pageNumber, author.getIdLong());
+                                        handleAction(message, true, paginator, pageNumber, author.getIdLong());
                                     } else {
-                                        handleAction(message, channel, false, paginator, pageNumber, author.getIdLong());
+                                        handleAction(message, false, paginator, pageNumber, author.getIdLong());
                                     }
-                                }, () -> {
-                                    message.clearReactions().queue();
-                                    channel.sendMessage(settings.getHelpCommandEmbed().get()
-                                            .setDescription("Listening for reaction for last executed help command").build()).queue();
-                                });
+                                }, () -> message.clearReactions().queue());
                             } else {
                                 if (pageNumber != 1) {
                                     message.addReaction(arrowLeft).queue();
@@ -125,12 +101,8 @@ public class CommandHelp extends Command {
                                                 && !emote.isEmote())
                                                 && (arrowLeft.equals(emote.getName()));
                                     }, event -> {
-                                        handleAction(message, channel, true, paginator, pageNumber, author.getIdLong());
-                                    }, () -> {
-                                        message.clearReactions().queue();
-                                        channel.sendMessage(settings.getHelpCommandEmbed().get()
-                                                .setDescription("Listening for reaction for last executed help command").build()).queue();
-                                    });
+                                        handleAction(message, true, paginator, pageNumber, author.getIdLong());
+                                    }, () -> message.clearReactions().queue());
                                 }
                             }
                         }
@@ -138,17 +110,64 @@ public class CommandHelp extends Command {
                 }
             });
         }).orElse(failReason -> {
+            if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
+                channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
+                    if (paginator.hasNext(1)) {
+                        message.addReaction(arrowRight).queue();
+                        eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                            ReactionEmote emote = event.getReactionEmote();
+                            return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
+                                    && !emote.isEmote())
+                                    && (arrowRight.equals(emote.getName()));
+                        }, event -> {
+                            handleAction(message, false, paginator, 1, author.getIdLong());
+                        }, () -> message.clearReactions().queue());
+                    }
+                });
+                return;
+            }
             if (failReason == FailReason.ARGUMENT_PARSED_NOT_TYPE) {
-                EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                        .setDescription("You should type a number").build())
-                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                args.next(arg -> commandManager.getCommand(arg.getArgument()).orElse(null)).ifPresent(command -> {
+                    if (command.getPermissions() != null && !context.getMember().hasPermission(command.getPermissions())) {
+                        context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+                    if (command.getUsage() == null || command.getDescription() == null) {
+                        if (command.getName().equalsIgnoreCase("help")) {
+                            channel.sendMessage(
+                                    context.getAuthor().getAsMention() + ", can I ask you what can a help command do except provide help for commands?")
+                                    .queue();
+                            return;
+                        }
+                        EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
+                        channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                                .setDescription("This command hasn't got a description or a usage.").build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+                    EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
+                    helpCommandEmbed.addField("Usage", "`" + command.getUsage() + "`", true);
+                    helpCommandEmbed.addField("Description", "`" + command.getDescription() + "`", true);
+                    if (command.getAliases() != null) {
+                        helpCommandEmbed.addField("Aliases", String.join(", ", command.getAliases()), true);
+                    }
+                }).orElse(scFailReason -> {
+                    if (scFailReason == FailReason.ARGUMENT_PARSED_NULL) {
+                        EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
+                        channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                                .setDescription("You should type either a page number or a command name.").build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                    }
+                });
             }
         });
     }
 
-    private void handleAction(Message message, TextChannel channel, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {
+    private void handleAction(Message message, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {
         message.clearReactions().queue();
         if (isArrowLeft) {
             int page = currentPage - 1;
@@ -172,16 +191,11 @@ public class CommandHelp extends Command {
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (emote.getName().equals(arrowLeft)) {
-                    handleAction(message, channel, true, paginator, currentPageMap.get(userId), userId);
+                    handleAction(message, true, paginator, currentPageMap.get(userId), userId);
                 } else {
-                    handleAction(message, channel, false, paginator, currentPageMap.get(userId), userId);
+                    handleAction(message, false, paginator, currentPageMap.get(userId), userId);
                 }
-            }, () -> {
-                CommandSettings settings = commandManager.getSettings();
-                message.clearReactions().queue();
-                channel.sendMessage(settings.getHelpCommandEmbed().get()
-                        .setDescription("Listening for reaction for last executed help command").build()).queue();
-            });
+            }, () -> message.clearReactions().queue());
         } else {
             int page = currentPage + 1;
             if (currentPageMap.containsKey(userId)) {
@@ -202,16 +216,11 @@ public class CommandHelp extends Command {
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (emote.getName().equals(arrowLeft)) {
-                    handleAction(message, channel, true, paginator, (currentPageMap.get(userId)), userId);
+                    handleAction(message, true, paginator, (currentPageMap.get(userId)), userId);
                 } else {
-                    handleAction(message, channel, false, paginator, (currentPageMap.get(userId)), userId);
+                    handleAction(message, false, paginator, (currentPageMap.get(userId)), userId);
                 }
-            }, () -> {
-                CommandSettings settings = commandManager.getSettings();
-                message.clearReactions().queue();
-                channel.sendMessage(settings.getHelpCommandEmbed().get()
-                        .setDescription("Listening for reaction for last executed help command").build()).queue();
-            });
+            }, () -> message.clearReactions().queue());
         }
     }
 }
