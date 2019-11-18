@@ -65,7 +65,8 @@ public class CommandHelp extends Command {
         CommandSettings settings = commandManager.getSettings();
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
-        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings, context.getMember(), context.getAuthor());
+        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings,
+                context.getMember(), context.getAuthor(), context.getGuild().getIdLong());
         args.nextInt().ifPresent(pageNumber -> {
             channel.sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
                 if (!message.getEmbeds().isEmpty()) {
@@ -129,10 +130,11 @@ public class CommandHelp extends Command {
             }
             if (failReason == FailReason.ARGUMENT_PARSED_NOT_TYPE) {
                 RegisteredCommand command = commandManager.getCommand(parsed).orElse(null);
+                String prefix = settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong());
                 if (command == null) {
                     EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
                     channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                            .setDescription("You should type either a page number or a command name.").build())
+                            .setDescription("Invalid command name/alias. Usage: `" + prefix + "help (command name/alias or page number)`").build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
@@ -158,8 +160,8 @@ public class CommandHelp extends Command {
                     return;
                 }
                 EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
-                helpCommandEmbed.addField("Usage", "`" + command.getUsage() + "`", true);
-                helpCommandEmbed.addField("Description", "`" + command.getDescription() + "`", true);
+                helpCommandEmbed.addField("Usage", "`" + prefix + command.getUsage() + "`", true);
+                helpCommandEmbed.addField("Description", command.getDescription(), true);
                 if (command.getAliases() != null) {
                     helpCommandEmbed.addField("Aliases", String.join(", ", command.getAliases()), true);
                 }

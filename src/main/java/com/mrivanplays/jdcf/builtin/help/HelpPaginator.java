@@ -41,17 +41,18 @@ class HelpPaginator {
     private final List<EmbedBuilder> pages;
     private final Supplier<EmbedBuilder> errorEmbed;
 
-    HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, Member commandExecutor, User author) {
+    HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, Member commandExecutor, User author, long guildId) {
         List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
         List<RegisteredCommand> filteredCommands = commands.stream()
                 .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
                 .collect(Collectors.toList());
+        String prefix = settings.getPrefixHandler().getPrefix(guildId);
         for (int i = 0; i < commands.size(); i += settings.getCommandsPerHelpPage()) {
             EmbedBuilder embed = settings.getHelpCommandEmbed().get();
             for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + settings.getCommandsPerHelpPage(), filteredCommands.size()))) {
-                embed.addField("`" + in.getUsage() + "`", in.getDescription(), false);
+                embed.appendDescription("`" + prefix + in.getUsage() + "` - " + in.getDescription() + "\n");
             }
-            if (embed.getFields().isEmpty()) {
+            if (embed.getDescriptionBuilder().length() == 0) {
                 continue;
             }
             pagesWithCommands.add(embed);
@@ -59,7 +60,9 @@ class HelpPaginator {
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < pagesWithCommands.size(); i++) {
             EmbedBuilder embed = pagesWithCommands.get(i);
-            pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size()));
+            StringBuilder currentDescriptionBuilder = embed.getDescriptionBuilder();
+            String currentDescription = currentDescriptionBuilder.substring(0, currentDescriptionBuilder.length() - 2);
+            pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size() + "\n" + "\n" + currentDescription));
         }
         this.pages = pages;
         this.errorEmbed = settings.getErrorEmbed();
