@@ -58,11 +58,15 @@ public final class RestArgumentAction {
      */
     public void orElse(@NotNull Consumer<FailReason> toRun) {
         Objects.requireNonNull(toRun, "toRun");
-        if (failReason != FailReason.NO_FAIL_REASON) {
-            toRun.accept(failReason);
-        }
+        orElse((fr, $) -> toRun.accept(fr));
     }
 
+    /**
+     * The specified {@link BiConsumer} gets invoked with the {@link FailReason} and the specified {@link String}
+     * argument. Depending on the fail reason, the argument may or may not be null.
+     *
+     * @param toRun the action to run
+     */
     public void orElse(@NotNull BiConsumer<FailReason, String> toRun) {
         Objects.requireNonNull(toRun, "toRun");
         if (failReason != FailReason.NO_FAIL_REASON) {

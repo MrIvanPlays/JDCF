@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.CheckReturnValue;
 
 /**
  * Represents a class, containing the actual argument resolving of a command.
@@ -131,6 +132,7 @@ public final class CommandArguments {
      * type parsed is null.
      */
     @NotNull
+    @CheckReturnValue
     public <T> ArgumentOptional<T> next(@NotNull ArgumentResolver<T> resolver) {
         Objects.requireNonNull(resolver, "resolver");
         if (args.size() == 0) {
@@ -152,11 +154,13 @@ public final class CommandArguments {
     }
 
     @NotNull
+    @CheckReturnValue
     public ArgumentOptional<Integer> nextInt() {
         return next(ArgumentResolvers.INTEGER);
     }
 
     @NotNull
+    @CheckReturnValue
     public ArgumentOptional<String> nextString() {
         if (args.size() == 0) {
             return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
@@ -169,11 +173,13 @@ public final class CommandArguments {
     }
 
     @NotNull
+    @CheckReturnValue
     public ArgumentOptional<Double> nextDouble() {
         return next(ArgumentResolvers.DOUBLE);
     }
 
     @NotNull
+    @CheckReturnValue
     public ArgumentOptional<Float> nextFloat() {
         return next(ArgumentResolvers.FLOAT);
     }

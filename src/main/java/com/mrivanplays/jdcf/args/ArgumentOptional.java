@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.annotation.CheckReturnValue;
 
 /**
  * Represents a optional which contains things for our purpose and that's arguments.
@@ -68,6 +69,7 @@ public final class ArgumentOptional<T> {
      * @return a <i>rest</i> argument action
      */
     @NotNull
+    @CheckReturnValue
     public RestArgumentAction ifPresent(@NotNull Consumer<T> action) {
         Objects.requireNonNull(action, "action");
         if (isPresent()) {

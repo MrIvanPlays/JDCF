@@ -47,15 +47,23 @@ class HelpPaginator {
                 .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
                 .collect(Collectors.toList());
         String prefix = settings.getPrefixHandler().getPrefix(guildId);
-        for (int i = 0; i < commands.size(); i += settings.getCommandsPerHelpPage()) {
+        if (filteredCommands.size() == settings.getCommandsPerHelpPage()) {
             EmbedBuilder embed = settings.getHelpCommandEmbed().get();
-            for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + settings.getCommandsPerHelpPage(), filteredCommands.size()))) {
+            for (RegisteredCommand in : filteredCommands) {
                 embed.appendDescription("`" + prefix + in.getUsage() + "` - " + in.getDescription() + "\n");
             }
-            if (embed.getDescriptionBuilder().length() == 0) {
-                continue;
-            }
             pagesWithCommands.add(embed);
+        } else {
+            for (int i = 0; i < commands.size(); i += settings.getCommandsPerHelpPage()) {
+                EmbedBuilder embed = settings.getHelpCommandEmbed().get();
+                for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + settings.getCommandsPerHelpPage(), filteredCommands.size()))) {
+                    embed.appendDescription("`" + prefix + in.getUsage() + "` - " + in.getDescription() + "\n");
+                }
+                if (embed.getDescriptionBuilder().length() == 0) {
+                    continue;
+                }
+                pagesWithCommands.add(embed);
+            }
         }
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < pagesWithCommands.size(); i++) {
