@@ -22,10 +22,13 @@
 */
 package com.mrivanplays.jdcf.args;
 
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +77,59 @@ public final class ArgumentResolvers {
             return USER_ID.resolve(context);
         } catch (Exception e) {
             return USER_MENTION.resolve(context);
+        }
+    };
+
+    public static ArgumentResolver<Role> ROLE_NAME = context -> {
+        List<Role> roles = context.getGuild().getRolesByName(context.getArgument(), true);
+        if (roles.isEmpty()) {
+            throw new IllegalArgumentException();
+        } else {
+            return roles.get(0);
+        }
+    };
+
+    public static ArgumentResolver<Role> ROLE_ID = context -> {
+        Role role = context.getGuild().getRoleById(context.getArgument());
+        if (role == null) {
+            throw new IllegalArgumentException();
+        } else {
+            return role;
+        }
+    };
+
+    public static ArgumentResolver<Role> ROLE = context -> {
+        try {
+            return ROLE_NAME.resolve(context);
+        } catch (Exception e) {
+            return ROLE_ID.resolve(context);
+        }
+    };
+
+    public static ArgumentResolver<TextChannel> CHANNEL_NAME = context -> {
+        List<TextChannel> channels = context.getGuild().getTextChannelsByName(context.getArgument(), true);
+
+        if (channels.isEmpty()) {
+            throw new IllegalArgumentException();
+        } else {
+            return channels.get(0);
+        }
+    };
+
+    public static ArgumentResolver<TextChannel> CHANNEL_ID = context -> {
+        TextChannel channel = context.getGuild().getTextChannelById(context.getArgument());
+        if (channel == null) {
+            throw new IllegalArgumentException();
+        } else {
+            return channel;
+        }
+    };
+
+    public static ArgumentResolver<TextChannel> CHANNEL = context -> {
+        try {
+            return CHANNEL_NAME.resolve(context);
+        } catch (Exception e) {
+            return CHANNEL_ID.resolve(context);
         }
     };
 }
