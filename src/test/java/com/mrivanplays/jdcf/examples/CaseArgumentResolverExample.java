@@ -24,6 +24,7 @@ package com.mrivanplays.jdcf.examples;
 
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
+import com.mrivanplays.jdcf.args.ArgumentResolver;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.builtin.CaseArgumentResolver;
 
@@ -37,7 +38,7 @@ import java.util.Map;
  */
 public class CaseArgumentResolverExample extends Command {
 
-    private CaseArgumentResolver<ExampleCommandArgument> argumentResolver;
+    private ArgumentResolver<ExampleCommandArgument> argumentResolver;
 
     public CaseArgumentResolverExample() {
         super("example");
