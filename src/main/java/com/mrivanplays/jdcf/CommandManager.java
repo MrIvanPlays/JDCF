@@ -244,7 +244,7 @@ public final class CommandManager implements EventListener {
             RegisteredCommand command = commandOptional.get();
             String messageContent = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong()) + commandLine;
             CommandExecutionContext context = new CommandExecutionContext(
-                    new CommandDispatcherMessage(messageContent, jda, guild, channel), alias, true);
+                    new CommandDispatcherMessage(messageContent, jda, guild, channel, commandSettings.getExecutorService()), alias, true);
             return command.execute(context, new CommandArguments(args, jda, guild));
         }
         return false;

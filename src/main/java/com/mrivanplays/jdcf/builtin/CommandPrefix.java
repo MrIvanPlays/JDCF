@@ -51,9 +51,6 @@ public class CommandPrefix extends Command {
 
     @Override
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
-        if (context.isFromDispatcher()) {
-            throw new UnsupportedOperationException("Prefix command cannot be executed from a dispatcher.");
-        }
         CommandSettings settings = commandManager.getSettings();
         if (args.size() == 0) {
             context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())

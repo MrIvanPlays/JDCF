@@ -27,13 +27,16 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageActivity;
+import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.internal.entities.AbstractMessage;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -42,12 +45,14 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     private JDA jda;
     private Guild guild;
     private TextChannel channel;
+    private ScheduledExecutorService executor;
 
-    public CommandDispatcherMessage(String content, JDA jda, Guild guild, TextChannel channel) {
+    public CommandDispatcherMessage(String content, JDA jda, Guild guild, TextChannel channel, ScheduledExecutorService executor) {
         super(content, "0", false);
         this.jda = jda;
         this.guild = guild;
         this.channel = channel;
+        this.executor = executor;
     }
 
     @Override
@@ -135,6 +140,12 @@ public final class CommandDispatcherMessage extends AbstractMessage {
         return channel;
     }
 
+    @Nonnull
+    @Override
+    public AuditableRestAction<Void> delete() {
+        return new CommandDispatcherARS<>(jda, executor);
+    }
+
     @Nullable
     @Override
     public MessageActivity getActivity() {
@@ -146,5 +157,11 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     public long getIdLong() {
         unsupported();
         return 0;
+    }
+
+    @Nonnull
+    @Override
+    public MessageType getType() {
+        return MessageType.DEFAULT;
     }
 }
