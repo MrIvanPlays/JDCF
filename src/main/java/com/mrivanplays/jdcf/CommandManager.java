@@ -37,6 +37,7 @@ import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
@@ -224,10 +225,11 @@ public final class CommandManager implements EventListener {
      * @param jda         the jda instance from which the command should be executed
      * @param guild       the guild where the command should be executed
      * @param channel     the channel, used for the command to reply with response
+     * @param member      the member for which the command is going to watch parameters
      * @param commandLine the command line to execute
      * @return execution success state
      */
-    public boolean dispatchCommand(@NotNull JDA jda, @NotNull Guild guild, @NotNull TextChannel channel, @NotNull String commandLine) {
+    public boolean dispatchCommand(@NotNull JDA jda, @NotNull Guild guild, @NotNull TextChannel channel, @NotNull Member member, @NotNull String commandLine) {
         Objects.requireNonNull(jda, "jda");
         Objects.requireNonNull(guild, "guild");
         Objects.requireNonNull(channel, "channel");
@@ -244,7 +246,7 @@ public final class CommandManager implements EventListener {
             RegisteredCommand command = commandOptional.get();
             String messageContent = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong()) + commandLine;
             CommandExecutionContext context = new CommandExecutionContext(
-                    new CommandDispatcherMessage(messageContent, jda, guild, channel, commandSettings.getExecutorService()), alias, true);
+                    new CommandDispatcherMessage(messageContent, jda, guild, channel, member, commandSettings.getExecutorService()), alias, true);
             return command.execute(context, new CommandArguments(args, jda, guild));
         }
         return false;

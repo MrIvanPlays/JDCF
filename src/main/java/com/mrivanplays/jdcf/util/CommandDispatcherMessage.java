@@ -45,13 +45,15 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     private JDA jda;
     private Guild guild;
     private TextChannel channel;
+    private Member member;
     private ScheduledExecutorService executor;
 
-    public CommandDispatcherMessage(String content, JDA jda, Guild guild, TextChannel channel, ScheduledExecutorService executor) {
+    public CommandDispatcherMessage(String content, JDA jda, Guild guild, TextChannel channel, Member member, ScheduledExecutorService executor) {
         super(content, "0", false);
         this.jda = jda;
         this.guild = guild;
         this.channel = channel;
+        this.member = member;
         this.executor = executor;
     }
 
@@ -81,7 +83,7 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     @Nonnull
     @Override
     public Member getMember() {
-        return guild.getSelfMember();
+        return member;
     }
 
     @Nonnull
