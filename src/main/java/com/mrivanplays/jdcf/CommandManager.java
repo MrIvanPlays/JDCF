@@ -39,6 +39,7 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.sharding.ShardManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
@@ -60,7 +62,7 @@ public final class CommandManager implements EventListener {
 
     private static final Pattern ALIAS_SPLIT_PATTERN = Pattern.compile("\\|");
 
-    private final List<RegisteredCommand> commands;
+    private List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
 
     public CommandManager(@NotNull JDA jda) {
@@ -69,14 +71,28 @@ public final class CommandManager implements EventListener {
 
     public CommandManager(@NotNull JDA jda, @NotNull CommandSettings settings) {
         Objects.requireNonNull(jda, "JDA instance cannot be null");
+        jda.addEventListener(this);
+        init(settings, jda::addEventListener);
+    }
+
+    public CommandManager(@NotNull ShardManager shardManager) {
+        this(shardManager, DefaultCommandSettings.get());
+    }
+
+    public CommandManager(@NotNull ShardManager shardManager, @NotNull CommandSettings settings) {
+        Objects.requireNonNull(shardManager, "ShardManager instance cannot be null");
+        shardManager.addEventListener(this);
+        init(settings, shardManager::addEventListener);
+    }
+
+    private void init(CommandSettings settings, Consumer<EventWaiter> waiterRegistry) {
         commands = new ArrayList<>();
         setSettings(settings);
-        jda.addEventListener(this);
         getSettings().getExecutorService().schedule(() -> {
             if (getSettings().isEnableHelpCommand()) {
                 if (!getCommand("help").isPresent()) {
                     EventWaiter eventWaiter = new EventWaiter(getSettings().getExecutorService());
-                    jda.addEventListener(eventWaiter);
+                    waiterRegistry.accept(eventWaiter);
                     registerCommand(new CommandHelp(this, eventWaiter));
                 }
             }
