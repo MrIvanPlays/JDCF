@@ -70,7 +70,7 @@ public class MyCommand extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
         args.nextString()
             .ifPresent(argument -> context.getChannel().sendMessage(argument).queue())
             .orElse(failReason -> {
@@ -78,6 +78,7 @@ public class MyCommand extends Command {
                     context.getChannel().sendMessage("Specify something.").queue();
                 }
             });
+        return true;
     }
 }
 ```
