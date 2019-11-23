@@ -64,16 +64,17 @@ public class CommandShutdown extends Command {
      * {@inheritDoc}
      */
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
         User author = context.getAuthor();
         if (!author.getId().equalsIgnoreCase(botOwnerId)) {
             context.getChannel().sendMessage(EmbedUtil.setAuthor(commandManager.getSettings().getNoPermissionEmbed().get(), author).build())
                     .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
             context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-            return;
+            return false;
         }
         context.getJda().shutdownNow();
         context.getJda().getHttpClient().connectionPool().evictAll();
         context.getJda().getHttpClient().dispatcher().executorService().shutdown();
+        return true;
     }
 }

@@ -44,6 +44,7 @@ public class CommandBuilderExample {
                 .permissions(Permission.MANAGE_CHANNEL)
                 .executor((context, args) -> {
                     context.getChannel().sendMessage("The performed test was successful.").queue();
+                    return true;
                 })
                 .buildAndRegister(commandManager);
     }

@@ -40,7 +40,7 @@ public class CommandArgumentsExampleCommand extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
         args.nextString().ifPresent(message -> {
             args.next(ArgumentResolvers.USER).ifPresent(user -> {
                 user.openPrivateChannel().queue(channel -> channel.sendMessage(context.getMember().getUser().getName() + " messaged you: " + message).queue());
@@ -57,5 +57,6 @@ public class CommandArgumentsExampleCommand extends Command {
                 context.getChannel().sendMessage("Usage: pm <one-word-message> <user>").queue();
             }
         });
+        return true;
     }
 }

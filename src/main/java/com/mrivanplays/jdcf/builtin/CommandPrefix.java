@@ -50,12 +50,15 @@ public class CommandPrefix extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+        if (context.isFromDispatcher()) {
+            throw new UnsupportedOperationException("Prefix command cannot be executed from a dispatcher.");
+        }
         CommandSettings settings = commandManager.getSettings();
         if (args.size() == 0) {
             context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())
                     .setDescription("Prefix is: " + settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong())).build()).queue();
-            return;
+            return false;
         }
         args.nextString().ifPresent(subCommand -> {
             if (subCommand.equalsIgnoreCase("set")) {
@@ -79,5 +82,6 @@ public class CommandPrefix extends Command {
                 });
             }
         });
+        return true;
     }
 }

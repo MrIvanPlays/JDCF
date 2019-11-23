@@ -103,8 +103,9 @@ public final class RegisteredCommand {
      *
      * @param context context
      * @param args    arguments
+     * @return command execution success
      */
-    public void execute(CommandExecutionContext context, CommandArguments args) {
-        command.execute(context, args);
+    public boolean execute(CommandExecutionContext context, CommandArguments args) {
+        return command.execute(context, args);
     }
 }

@@ -36,25 +36,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class CommandExecutionContext {
 
-    private final TextChannel channel;
-    private final Member member;
-    private final User author;
-    private final JDA jda;
     private final Message message;
-    private final Guild guild;
     private final String alias;
+    private final boolean fromDispatcher;
 
-    public CommandExecutionContext(
-            @NotNull TextChannel channel, @NotNull Member member, @NotNull User author,
-            @NotNull JDA jda, @NotNull Message message, @NotNull Guild guild,
-            @NotNull String alias) {
-        this.channel = channel;
-        this.member = member;
-        this.author = author;
-        this.jda = jda;
+    public CommandExecutionContext(@NotNull Message message, @NotNull String alias, boolean fromDispatcher) {
         this.message = message;
-        this.guild = guild;
         this.alias = alias;
+        this.fromDispatcher = fromDispatcher;
     }
 
     /**
@@ -64,7 +53,7 @@ public final class CommandExecutionContext {
      */
     @NotNull
     public TextChannel getChannel() {
-        return channel;
+        return message.getTextChannel();
     }
 
     /**
@@ -76,7 +65,7 @@ public final class CommandExecutionContext {
      */
     @NotNull
     public Member getMember() {
-        return member;
+        return message.getMember();
     }
 
     /**
@@ -88,7 +77,7 @@ public final class CommandExecutionContext {
      */
     @NotNull
     public User getAuthor() {
-        return author;
+        return message.getAuthor();
     }
 
     /**
@@ -98,7 +87,7 @@ public final class CommandExecutionContext {
      */
     @NotNull
     public JDA getJda() {
-        return jda;
+        return message.getJDA();
     }
 
     /**
@@ -118,7 +107,7 @@ public final class CommandExecutionContext {
      */
     @NotNull
     public Guild getGuild() {
-        return guild;
+        return message.getGuild();
     }
 
     /**
@@ -129,5 +118,14 @@ public final class CommandExecutionContext {
     @NotNull
     public String getAlias() {
         return alias;
+    }
+
+    /**
+     * Returns whenever this context was made from a dispatcher
+     *
+     * @return <code>true</code> if the command wasn't dispatched the normal way, <code>false</code> otherwise
+     */
+    public boolean isFromDispatcher() {
+        return fromDispatcher;
     }
 }

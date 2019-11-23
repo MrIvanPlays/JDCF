@@ -50,7 +50,7 @@ public class CaseArgumentResolverExample extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
         args.next(argumentResolver).ifPresent(argument -> {
             String url = argument.getUrl();
             boolean performSearch = argument.isPerformSearch();
@@ -58,6 +58,7 @@ public class CaseArgumentResolverExample extends Command {
         }).orElse(failReason -> {
             // fail reason handling
         });
+        return true;
     }
 
     static class ExampleCommandArgument {

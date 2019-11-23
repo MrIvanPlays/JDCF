@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Represents a command. Extending classes may use the annotations located in {@link com.mrivanplays.jdcf.data} to give
@@ -87,8 +87,9 @@ public abstract class Command {
      *
      * @param context data about the trigger
      * @param args    the arguments typed when triggered
+     * @return command execution success state
      */
-    public abstract void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args);
+    public abstract boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args);
 
     /**
      * Represents a "all-in-one" command builder. It removes the usage of annotations and other classes except that one
@@ -96,7 +97,7 @@ public abstract class Command {
      */
     public static final class Builder {
 
-        private BiConsumer<CommandExecutionContext, CommandArguments> executor;
+        private BiFunction<CommandExecutionContext, CommandArguments, Boolean> executor;
         private String name;
         private String usage;
         private String description;
@@ -164,7 +165,7 @@ public abstract class Command {
          * @param executor executor
          * @return this instance for chaining
          */
-        public Builder executor(@NotNull BiConsumer<CommandExecutionContext, CommandArguments> executor) {
+        public Builder executor(@NotNull BiFunction<CommandExecutionContext, CommandArguments, Boolean> executor) {
             this.executor = executor;
             return this;
         }
@@ -181,8 +182,8 @@ public abstract class Command {
             return new RegisteredCommand(new Command(name, permissions) {
 
                 @Override
-                public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
-                    executor.accept(context, args);
+                public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+                    return executor.apply(context, args);
                 }
             }, usage, description, aliases);
         }

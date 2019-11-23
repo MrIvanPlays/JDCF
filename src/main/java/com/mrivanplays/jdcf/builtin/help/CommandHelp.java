@@ -61,7 +61,10 @@ public class CommandHelp extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+        if (context.isFromDispatcher()) {
+            throw new UnsupportedOperationException("Help command cannot be executed from a dispatcher.");
+        }
         CommandSettings settings = commandManager.getSettings();
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
@@ -168,6 +171,7 @@ public class CommandHelp extends Command {
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
         });
+        return true;
     }
 
     private void handleAction(Message message, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {

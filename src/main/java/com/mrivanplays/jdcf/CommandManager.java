@@ -30,11 +30,14 @@ import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.settings.DefaultCommandSettings;
+import com.mrivanplays.jdcf.util.CommandDispatcherMessage;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
 import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -214,6 +217,39 @@ public final class CommandManager implements EventListener {
         }
     }
 
+    /**
+     * Executes the specified command line with the specified arguments. When dispatched, the author and member of the
+     * command are the {@link JDA#getSelfUser()} and {@link Guild#getSelfMember()}
+     *
+     * @param jda         the jda instance from which the command should be executed
+     * @param guild       the guild where the command should be executed
+     * @param channel     the channel, used for the command to reply with response
+     * @param commandLine the command line to execute
+     * @return execution success state
+     */
+    public boolean dispatchCommand(@NotNull JDA jda, @NotNull Guild guild, @NotNull TextChannel channel, @NotNull String commandLine) {
+        Objects.requireNonNull(jda, "jda");
+        Objects.requireNonNull(guild, "guild");
+        Objects.requireNonNull(channel, "channel");
+        Objects.requireNonNull(commandLine, "commandLine");
+        Utils.checkState(commandLine.length() != 0, "commandLine length = 0");
+        Utils.checkState(guild.getTextChannels().contains(channel), "channel should be from guild");
+
+        String[] content = commandLine.split(" ");
+        String alias = content[0];
+        String[] args = Arrays.copyOfRange(content, 1, content.length);
+
+        Optional<RegisteredCommand> commandOptional = getCommand(alias);
+        if (commandOptional.isPresent()) {
+            RegisteredCommand command = commandOptional.get();
+            String messageContent = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong()) + commandLine;
+            CommandExecutionContext context = new CommandExecutionContext(
+                    new CommandDispatcherMessage(messageContent, jda, guild, channel), alias, true);
+            return command.execute(context, new CommandArguments(args, jda, guild));
+        }
+        return false;
+    }
+
     // command execution handling and bot shutdown handling
     @Override
     public void onEvent(@Nonnull GenericEvent generic) {
@@ -242,9 +278,7 @@ public final class CommandManager implements EventListener {
                             }
                         }
                         command.execute(
-                                new CommandExecutionContext(event.getChannel(), event.getMember(), event.getAuthor(),
-                                        event.getJDA(), event.getMessage(), event.getGuild(),
-                                        content[1]),
+                                new CommandExecutionContext(event.getMessage(), content[1], false),
                                 new CommandArguments(Arrays.copyOfRange(content, 2, content.length), event.getJDA(), event.getGuild()));
                     }
                 }
@@ -262,9 +296,7 @@ public final class CommandManager implements EventListener {
                         }
                     }
                     command.execute(
-                            new CommandExecutionContext(event.getChannel(), event.getMember(), event.getAuthor(),
-                                    event.getJDA(), event.getMessage(), event.getGuild(),
-                                    name),
+                            new CommandExecutionContext(event.getMessage(), name, false),
                             new CommandArguments(Arrays.copyOfRange(content, 1, content.length), event.getJDA(), event.getGuild()));
                 }
             }

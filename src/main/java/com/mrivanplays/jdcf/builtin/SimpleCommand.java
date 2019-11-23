@@ -46,8 +46,8 @@ public abstract class SimpleCommand extends Command {
     }
 
     @Override
-    public void execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
-        execute(context, args.getArgsLeft());
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+        return execute(context, args.getArgsLeft());
     }
 
     /**
@@ -55,6 +55,7 @@ public abstract class SimpleCommand extends Command {
      *
      * @param context the command context
      * @param args arguments
+     * @return execution success state
      */
-    public abstract void execute(@NotNull CommandExecutionContext context, @NotNull String[] args);
+    public abstract boolean execute(@NotNull CommandExecutionContext context, @NotNull String[] args);
 }
