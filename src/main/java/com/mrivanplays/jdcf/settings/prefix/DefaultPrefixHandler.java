@@ -22,9 +22,8 @@
 */
 package com.mrivanplays.jdcf.settings.prefix;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrivanplays.jdcf.util.Utils;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -47,21 +45,21 @@ public class DefaultPrefixHandler implements PrefixHandler {
 
     private final Map<Long, String> prefixes = new HashMap<>();
     private final File file;
-    private final Gson gson;
-    private final Type mapType;
+    private ObjectMapper jsonMapper;
     private String defaultPrefix;
 
     public DefaultPrefixHandler(ScheduledExecutorService executorService) {
-        mapType = new TypeToken<Map<Long, String>>() {
-        }.getType();
+        this(executorService, new ObjectMapper());
+    }
+
+    public DefaultPrefixHandler(ScheduledExecutorService executorService, ObjectMapper jsonMapper) {
+        TypeReference<HashMap<Long, String>> mapType = new TypeReference<HashMap<Long, String>>() {
+        };
+        this.jsonMapper = jsonMapper;
         file = new File("prefixes.json");
-        gson = new Gson();
         createFile();
         try (Reader reader = new FileReader(file)) {
-            Map<Long, String> map = gson.fromJson(reader, mapType);
-            if (map == null) {
-                return;
-            }
+            Map<Long, String> map = jsonMapper.readValue(reader, mapType);
             prefixes.putAll(map);
         } catch (IOException ignored) {
         }
@@ -111,7 +109,7 @@ public class DefaultPrefixHandler implements PrefixHandler {
         file.delete();
         createFile();
         try (Writer writer = new FileWriter(file)) {
-            writer.write(gson.toJson(prefixes, mapType));
+            writer.write(jsonMapper.writer().writeValueAsString(prefixes));
         } catch (IOException ignored) {
         }
     }

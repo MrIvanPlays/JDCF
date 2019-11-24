@@ -233,6 +233,7 @@ public final class CommandManager implements EventListener {
         Objects.requireNonNull(jda, "jda");
         Objects.requireNonNull(guild, "guild");
         Objects.requireNonNull(channel, "channel");
+        Objects.requireNonNull(member, "member");
         Objects.requireNonNull(commandLine, "commandLine");
         Utils.checkState(commandLine.length() != 0, "commandLine length = 0");
         Utils.checkState(guild.getTextChannels().contains(channel), "channel should be from guild");
