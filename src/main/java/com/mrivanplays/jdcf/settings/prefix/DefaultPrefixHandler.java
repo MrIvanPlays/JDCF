@@ -58,12 +58,15 @@ public class DefaultPrefixHandler implements PrefixHandler {
         this.jsonMapper = jsonMapper;
         file = new File("prefixes.json");
         createFile();
+        executorService.scheduleAtFixedRate(this::savePrefixes, 5, 30, TimeUnit.MINUTES);
         try (Reader reader = new FileReader(file)) {
             Map<Long, String> map = jsonMapper.readValue(reader, mapType);
+            if (map == null) {
+                return;
+            }
             prefixes.putAll(map);
         } catch (IOException ignored) {
         }
-        executorService.scheduleAtFixedRate(this::savePrefixes, 5, 30, TimeUnit.MINUTES);
     }
 
     private void createFile() {
