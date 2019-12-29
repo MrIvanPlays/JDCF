@@ -6,7 +6,7 @@
 
     <groupId>com.mrivanplays</groupId>
     <artifactId>JDCF</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
 
     <name>JavaDiscordCommandFramework</name>
     <description>Command framework for Java Discord API</description>

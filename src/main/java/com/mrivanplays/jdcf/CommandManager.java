@@ -1,25 +1,3 @@
-/*
-    Copyright (c) 2019 Ivan Pekov
-    Copyright (c) 2019 Contributors
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
 package com.mrivanplays.jdcf;
 
 import com.mrivanplays.jdcf.args.CommandArguments;
@@ -36,6 +14,7 @@ import com.mrivanplays.jdcf.util.EventWaiter;
 import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -270,38 +249,12 @@ public final class CommandManager implements EventListener {
             if (commandSettings.isEnableMentionInsteadPrefix()) {
                 // checks if the first typed thing is a mention to our bot
                 if (aliasPrefix.equalsIgnoreCase(event.getJDA().getSelfUser().getAsMention())) {
-                    Optional<RegisteredCommand> commandOptional = getCommand(content[1]);
-                    if (commandOptional.isPresent()) {
-                        RegisteredCommand command = commandOptional.get();
-                        if (command.getPermissions() != null) {
-                            if (!event.getMember().hasPermission(command.getPermissions())) {
-                                event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
-                                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                                return;
-                            }
-                        }
-                        command.execute(
-                                new CommandExecutionContext(event.getMessage(), content[1], false),
-                                new CommandArguments(Arrays.copyOfRange(content, 2, content.length), event.getJDA(), event.getGuild()));
-                    }
+                    executeCommand(content[1], event, content, 2);
                 }
             }
             if (aliasPrefix.startsWith(prefix)) { // checks if the first typed thing starts with the guild prefix
                 String name = aliasPrefix.replace(prefix, "");
-                Optional<RegisteredCommand> commandOptional = getCommand(name);
-                if (commandOptional.isPresent()) {
-                    RegisteredCommand command = commandOptional.get();
-                    if (command.getPermissions() != null) {
-                        if (!event.getMember().hasPermission(command.getPermissions())) {
-                            event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
-                                    .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                            return;
-                        }
-                    }
-                    command.execute(
-                            new CommandExecutionContext(event.getMessage(), name, false),
-                            new CommandArguments(Arrays.copyOfRange(content, 1, content.length), event.getJDA(), event.getGuild()));
-                }
+                executeCommand(name, event, content, 1);
             }
         }
         if (generic.getClass().isAssignableFrom(ShutdownEvent.class)) {
@@ -317,6 +270,32 @@ public final class CommandManager implements EventListener {
             // be aware that it's your fault if you don't implement savePrefixes method
             // or any of the other methods for the prefix handler
             commandSettings.getPrefixHandler().savePrefixes();
+        }
+    }
+
+    private void executeCommand(String name, GuildMessageReceivedEvent event, String[] content, int argsFrom) {
+        Optional<RegisteredCommand> commandOptional = getCommand(name);
+        if (commandOptional.isPresent()) {
+            RegisteredCommand command = commandOptional.get();
+            if (command.getPermissions() != null) {
+                if (!event.getMember().hasPermission(command.getPermissions())) {
+                    event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
+                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+            }
+            if (commandSettings.getCommandExecuteChannel() != null &&
+                    !event.getMember().hasPermission(Permission.ADMINISTRATOR) &&
+                    event.getChannel().getIdLong() != commandSettings.getCommandExecuteChannel().getIdLong()) {
+                event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
+                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                return;
+            }
+            command.execute(
+                    new CommandExecutionContext(event.getMessage(), name, false),
+                    new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), event.getJDA(), event.getGuild()));
         }
     }
 }

@@ -1,30 +1,9 @@
-/*
-    Copyright (c) 2019 Ivan Pekov
-    Copyright (c) 2019 Contributors
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
 package com.mrivanplays.jdcf.settings;
 
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +29,7 @@ public final class CommandSettings {
     private Supplier<EmbedBuilder> prefixCommandEmbed;
     private Supplier<EmbedBuilder> errorEmbed;
     private Supplier<EmbedBuilder> successEmbed;
+    private TextChannel commandExecuteChannel;
 
     /**
      * Returns the prefix handler.
@@ -261,5 +241,24 @@ public final class CommandSettings {
      */
     public void setSuccessEmbed(@NotNull Supplier<EmbedBuilder> successEmbed) {
         this.successEmbed = requireNonNull(successEmbed, "successEmbed");
+    }
+
+    /**
+     * Returns the channel, where commands should be executed. If null, commands can be executed anywhere.
+     *
+     * @return channel
+     */
+    @Nullable
+    public TextChannel getCommandExecuteChannel() {
+        return commandExecuteChannel;
+    }
+
+    /**
+     * Sets the channel where commands should be executed.
+     *
+     * @param channel the channel where you want only commands to be executed
+     */
+    public void setCommandExecuteChannel(@Nullable TextChannel channel) {
+        this.commandExecuteChannel = channel;
     }
 }
