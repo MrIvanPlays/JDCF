@@ -7,4 +7,13 @@ public class Utils {
             throw new IllegalArgumentException(message);
         }
     }
+
+    public static <T> boolean contains(T value, T[] array) {
+        for (T t : array) {
+            if (t.equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

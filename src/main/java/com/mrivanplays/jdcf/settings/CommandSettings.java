@@ -1,6 +1,7 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
+import com.mrivanplays.jdcf.translation.Translations;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -30,6 +31,7 @@ public final class CommandSettings {
     private Supplier<EmbedBuilder> errorEmbed;
     private Supplier<EmbedBuilder> successEmbed;
     private TextChannel commandExecuteChannel;
+    private Translations translations;
 
     /**
      * Returns the prefix handler.
@@ -260,5 +262,24 @@ public final class CommandSettings {
      */
     public void setCommandExecuteChannel(@Nullable TextChannel channel) {
         this.commandExecuteChannel = channel;
+    }
+
+    /**
+     * Returns the translations for messages.
+     *
+     * @return translations
+     */
+    @NotNull
+    public Translations getTranslations() {
+        return translations;
+    }
+
+    /**
+     * Sets new translations for messages
+     *
+     * @param translations new translations
+     */
+    public void setTranslations(@NotNull Translations translations) {
+        this.translations = requireNonNull(translations, "translations");
     }
 }

@@ -289,8 +289,9 @@ public final class CommandManager implements EventListener {
                     !event.getMember().hasPermission(Permission.ADMINISTRATOR) &&
                     event.getChannel().getIdLong() != commandSettings.getCommandExecuteChannel().getIdLong()) {
                 event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), event.getAuthor())
-                        .setDescription("Commands cannot be executed here. Use: " + commandSettings.getCommandExecuteChannel().getAsMention()).build())
-                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        .setDescription(commandSettings.getTranslations().getTranslation("commands_channel",
+                                commandSettings.getCommandExecuteChannel().getAsMention()))
+                        .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                 event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                 return;
             }

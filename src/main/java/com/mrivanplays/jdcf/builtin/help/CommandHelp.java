@@ -7,6 +7,7 @@ import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.args.FailReason;
 import com.mrivanplays.jdcf.settings.CommandSettings;
+import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
 
@@ -40,10 +41,12 @@ public class CommandHelp extends Command {
 
     @Override
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
-        if (context.isFromDispatcher()) {
-            throw new UnsupportedOperationException("Help command cannot be executed from a dispatcher.");
-        }
         CommandSettings settings = commandManager.getSettings();
+        Translations translations = settings.getTranslations();
+        if (context.isFromDispatcher()) {
+            throw new UnsupportedOperationException(translations.getTranslation("help_not_executed"));
+        }
+        String pageName = translations.getTranslation("help_page_specify").split(" ")[0];
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
         HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings,
@@ -52,11 +55,11 @@ public class CommandHelp extends Command {
             channel.sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
                 if (!message.getEmbeds().isEmpty()) {
                     for (MessageEmbed embed : message.getEmbeds()) {
-                        if (embed.getTitle() != null && embed.getTitle().equalsIgnoreCase("Error")) {
+                        if (embed.getTitle() != null && embed.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {
                             message.delete().queueAfter(15, TimeUnit.SECONDS);
                             context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                         }
-                        if (embed.getDescription() != null && embed.getDescription().contains("Page")) {
+                        if (embed.getDescription() != null && embed.getDescription().contains(pageName)) {
                             if (paginator.hasNext(pageNumber)) {
                                 if (pageNumber != 1) {
                                     message.addReaction(arrowLeft).queue();
@@ -115,7 +118,7 @@ public class CommandHelp extends Command {
                 if (command == null) {
                     EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
                     channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                            .setDescription("Invalid command name/alias. Usage: `" + prefix + "help (command name/alias or page number)`").build())
+                            .setDescription(translations.getTranslation("help_invalid_command", prefix)).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
@@ -128,28 +131,30 @@ public class CommandHelp extends Command {
                 }
                 if (command.getUsage() == null || command.getDescription() == null) {
                     if (command.getName().equalsIgnoreCase("help")) {
-                        channel.sendMessage(
-                                context.getAuthor().getAsMention() + ", can I ask you what can a help command do except provide help for commands?")
-                                .queue();
+                        channel.sendMessage(translations.getTranslation("help_asked_help", context.getAuthor().getAsMention())).queue();
                         return;
                     }
                     EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
                     channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
-                            .setDescription("This command hasn't got a description or a usage.").build())
+                            .setDescription(translations.getTranslation("help_no_data")).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
                 }
                 EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
-                helpCommandEmbed.addField("Usage", "`" + prefix + command.getUsage() + "`", true);
-                helpCommandEmbed.addField("Description", command.getDescription(), true);
+                helpCommandEmbed.addField(getKeyword("usage"), "`" + prefix + command.getUsage() + "`", true);
+                helpCommandEmbed.addField(getKeyword("description"), command.getDescription(), true);
                 if (command.getAliases() != null) {
-                    helpCommandEmbed.addField("Aliases", String.join(", ", command.getAliases()), true);
+                    helpCommandEmbed.addField(getKeyword("aliases"), String.join(", ", command.getAliases()), true);
                 }
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
         });
         return true;
+    }
+
+    private String getKeyword(String keyword) {
+        return commandManager.getSettings().getTranslations().getTranslation("help_" + keyword + "_keyword");
     }
 
     private void handleAction(Message message, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {

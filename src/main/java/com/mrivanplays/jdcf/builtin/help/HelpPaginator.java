@@ -2,6 +2,7 @@ package com.mrivanplays.jdcf.builtin.help;
 
 import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.settings.CommandSettings;
+import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -18,8 +19,10 @@ class HelpPaginator {
 
     private final List<EmbedBuilder> pages;
     private final Supplier<EmbedBuilder> errorEmbed;
+    private final Translations translations;
 
     HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, Member commandExecutor, User author, long guildId) {
+        this.translations = settings.getTranslations();
         List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
         List<RegisteredCommand> filteredCommands = commands.stream()
                 .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
@@ -48,7 +51,9 @@ class HelpPaginator {
             EmbedBuilder embed = pagesWithCommands.get(i);
             StringBuilder currentDescriptionBuilder = embed.getDescriptionBuilder();
             String currentDescription = currentDescriptionBuilder.substring(0, currentDescriptionBuilder.length() - 2);
-            pages.add(EmbedUtil.setAuthor(embed, author).setDescription("Page " + (i + 1) + "/" + pagesWithCommands.size() + "\n" + "\n" + currentDescription));
+            pages.add(EmbedUtil.setAuthor(embed, author)
+                    .setDescription(translations.getTranslation("help_page_specify", (i + 1), pagesWithCommands.size())
+                    + "\n" + "\n" + currentDescription));
         }
         this.pages = pages;
         this.errorEmbed = settings.getErrorEmbed();
@@ -63,7 +68,7 @@ class HelpPaginator {
         try {
             return pages.get(page - 1);
         } catch (IndexOutOfBoundsException e) {
-            return errorEmbed.get().setDescription("Page #" + page + " does not exist");
+            return errorEmbed.get().setDescription(translations.getTranslation("help_page_not_exist", page));
         }
     }
 
