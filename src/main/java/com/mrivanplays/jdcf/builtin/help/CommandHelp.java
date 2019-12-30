@@ -52,13 +52,15 @@ public class CommandHelp extends Command {
         HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings,
                 context.getMember(), context.getAuthor(), context.getGuild().getIdLong());
         args.nextInt().ifPresent(pageNumber -> {
-            channel.sendMessage(paginator.getPage(pageNumber).build()).queue(message -> {
+            MessageEmbed page = paginator.getPage(pageNumber).build();
+            if (page.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {
+                channel.sendMessage(page).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                return;
+            }
+            channel.sendMessage(page).queue(message -> {
                 if (!message.getEmbeds().isEmpty()) {
                     for (MessageEmbed embed : message.getEmbeds()) {
-                        if (embed.getTitle() != null && embed.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {
-                            message.delete().queueAfter(15, TimeUnit.SECONDS);
-                            context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                        }
                         if (embed.getDescription() != null && embed.getDescription().contains(pageName)) {
                             if (paginator.hasNext(pageNumber)) {
                                 if (pageNumber != 1) {

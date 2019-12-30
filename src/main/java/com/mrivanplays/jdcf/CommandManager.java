@@ -25,6 +25,8 @@ import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +49,7 @@ public final class CommandManager implements EventListener {
 
     private List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
+    private Logger logger;
 
     public CommandManager(@NotNull JDA jda) {
         this(jda, DefaultCommandSettings.get());
@@ -70,6 +73,7 @@ public final class CommandManager implements EventListener {
 
     private void init(CommandSettings settings, Consumer<EventWaiter> waiterRegistry) {
         commands = new ArrayList<>();
+        logger = LoggerFactory.getLogger(CommandManager.class);
         setSettings(settings);
         getSettings().getExecutorService().schedule(() -> {
             if (getSettings().isEnableHelpCommand()) {
@@ -298,6 +302,12 @@ public final class CommandManager implements EventListener {
             command.execute(
                     new CommandExecutionContext(event.getMessage(), name, false),
                     new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), event.getJDA(), event.getGuild()));
+
+            if (commandSettings.isLogExecutedCommands()) {
+                logger.info("\"" + event.getAuthor().getAsTag() +
+                        "\" has executed command \"" + event.getMessage().getContentRaw() +
+                        "\" in guild \"" + event.getGuild().getName() + "\" with guild id \"" + event.getGuild().getId() + "\"");
+            }
         }
     }
 }

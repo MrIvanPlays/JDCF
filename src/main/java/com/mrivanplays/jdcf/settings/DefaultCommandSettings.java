@@ -33,6 +33,7 @@ public class DefaultCommandSettings {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        settings.setLogExecutedCommands(false);
     }
 
     public static CommandSettings get() {

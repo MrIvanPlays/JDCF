@@ -32,6 +32,7 @@ public final class CommandSettings {
     private Supplier<EmbedBuilder> successEmbed;
     private TextChannel commandExecuteChannel;
     private Translations translations;
+    private boolean logExecutedCommands;
 
     /**
      * Returns the prefix handler.
@@ -281,5 +282,23 @@ public final class CommandSettings {
      */
     public void setTranslations(@NotNull Translations translations) {
         this.translations = requireNonNull(translations, "translations");
+    }
+
+    /**
+     * Should the framework log executed commands
+     *
+     * @return <code>true</code> if we should, <code>false</code> otherwise
+     */
+    public boolean isLogExecutedCommands() {
+        return logExecutedCommands;
+    }
+
+    /**
+     * Sets whenever the framework should log executed commands
+     *
+     * @param logExecutedCommands value
+     */
+    public void setLogExecutedCommands(boolean logExecutedCommands) {
+        this.logExecutedCommands = logExecutedCommands;
     }
 }
