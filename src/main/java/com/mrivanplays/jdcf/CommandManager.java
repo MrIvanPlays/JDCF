@@ -7,7 +7,6 @@ import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
 import com.mrivanplays.jdcf.settings.CommandSettings;
-import com.mrivanplays.jdcf.settings.DefaultCommandSettings;
 import com.mrivanplays.jdcf.util.CommandDispatcherMessage;
 import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
@@ -18,6 +17,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -52,7 +52,7 @@ public final class CommandManager implements EventListener {
     private Logger logger;
 
     public CommandManager(@NotNull JDA jda) {
-        this(jda, DefaultCommandSettings.get());
+        this(jda, CommandSettings.defaultSettings());
     }
 
     public CommandManager(@NotNull JDA jda, @NotNull CommandSettings settings) {
@@ -62,7 +62,7 @@ public final class CommandManager implements EventListener {
     }
 
     public CommandManager(@NotNull ShardManager shardManager) {
-        this(shardManager, DefaultCommandSettings.get());
+        this(shardManager, CommandSettings.defaultSettings());
     }
 
     public CommandManager(@NotNull ShardManager shardManager, @NotNull CommandSettings settings) {
@@ -89,6 +89,9 @@ public final class CommandManager implements EventListener {
                 }
             }
         }, 1, TimeUnit.SECONDS);
+
+        getSettings().getExecutorService()
+                .scheduleAtFixedRate(() -> getSettings().getPrefixHandler().savePrefixes(), 5, 30, TimeUnit.MINUTES);
     }
 
     /**
@@ -279,22 +282,21 @@ public final class CommandManager implements EventListener {
 
     private void executeCommand(String name, GuildMessageReceivedEvent event, String[] content, int argsFrom) {
         Optional<RegisteredCommand> commandOptional = getCommand(name);
+        Member member = event.getMember();
+        TextChannel callbackChannel = event.getChannel();
+        User author = event.getAuthor();
         if (commandOptional.isPresent()) {
             RegisteredCommand command = commandOptional.get();
-            if (command.getPermissions() != null) {
-                if (!event.getMember().hasPermission(command.getPermissions())) {
-                    event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), event.getAuthor()).build())
-                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                    event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                    return;
-                }
+            if (command.getPermissions() != null && !member.hasPermission(command.getPermissions())) {
+                callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
+                return;
             }
-            if (commandSettings.getCommandExecuteChannel() != null &&
-                    !event.getMember().hasPermission(Permission.ADMINISTRATOR) &&
-                    event.getChannel().getIdLong() != commandSettings.getCommandExecuteChannel().getIdLong()) {
-                event.getChannel().sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), event.getAuthor())
-                        .setDescription(commandSettings.getTranslations().getTranslation("commands_channel",
-                                commandSettings.getCommandExecuteChannel().getAsMention()))
+            TextChannel cec = commandSettings.getCommandExecuteChannel();
+            if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
+                callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                        .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
                         .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                 event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                 return;

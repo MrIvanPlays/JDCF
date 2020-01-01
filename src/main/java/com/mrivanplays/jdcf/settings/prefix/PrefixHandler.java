@@ -1,12 +1,70 @@
 package com.mrivanplays.jdcf.settings.prefix;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Represents a {@link com.mrivanplays.jdcf.Command} prefix handler.
  */
 public interface PrefixHandler {
+
+    /**
+     * Default implementation of a prefix handler, using json file as a long term storage.
+     *
+     * @param jsonMapper jackson object mapper
+     * @return non null default prefix handler
+     */
+    @NotNull
+    static PrefixHandler defaultHandler(@NotNull ObjectMapper jsonMapper) {
+        Objects.requireNonNull(jsonMapper, "jsonMapper");
+        PrefixHandler prefixHandler = null;
+        TypeReference<HashMap<Long, String>> mapType = new TypeReference<HashMap<Long, String>>() {
+        };
+        File file = new File("prefixes.json");
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException ignored) {
+            }
+        }
+        Consumer<Map<Long, String>> saveFunction = saveMap -> {
+            file.delete();
+            try {
+                file.createNewFile();
+            } catch (IOException ignored) {
+            }
+            try (Writer writer = new FileWriter(file)) {
+                writer.write(jsonMapper.writer().writeValueAsString(saveMap));
+            } catch (IOException ignored) {
+            }
+        };
+        try (Reader reader = new FileReader(file)) {
+            Map<Long, String> map = jsonMapper.readValue(reader, mapType);
+            if (map == null) {
+                map = new HashMap<>();
+            }
+            prefixHandler = new MapPrefixHandler(map, saveFunction);
+        } catch (IOException ignored) {
+        }
+        if (prefixHandler == null) {
+            prefixHandler = new MapPrefixHandler(new HashMap<>(), saveFunction);
+        }
+        return prefixHandler;
+    }
 
     /**
      * Returns the default command prefix of the bot.
@@ -41,7 +99,7 @@ public interface PrefixHandler {
     void setGuildPrefix(@NotNull String prefix, long guildId);
 
     /**
-     * Saves the prefixes to a file
+     * Saves the prefixes
      */
     void savePrefixes();
 

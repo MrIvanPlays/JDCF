@@ -1,6 +1,8 @@
 package com.mrivanplays.jdcf.settings;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
+import com.mrivanplays.jdcf.translation.TranslationCollector;
 import com.mrivanplays.jdcf.translation.Translations;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -9,6 +11,10 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.Color;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
@@ -33,6 +39,34 @@ public final class CommandSettings {
     private TextChannel commandExecuteChannel;
     private Translations translations;
     private boolean logExecutedCommands;
+
+    /**
+     * Returns the default settings object
+     *
+     * @return default settings
+     */
+    public static CommandSettings defaultSettings() {
+        CommandSettings settings = new CommandSettings();
+        settings.setEnableHelpCommand(false);
+        settings.setEnableMentionInsteadPrefix(true);
+        settings.setEnablePrefixCommand(true);
+        settings.setExecutorService(Executors.newSingleThreadScheduledExecutor());
+        settings.setNoPermissionEmbed(
+                () -> new EmbedBuilder().setColor(Color.RED).setTimestamp(Instant.now())
+                        .setTitle("Insufficient permissions")
+                        .setDescription("You don't have permission to perform this command."));
+        settings.setPrefixCommandEmbed(() -> new EmbedBuilder().setColor(Color.BLUE).setTimestamp(Instant.now()).setTitle("Prefix"));
+        settings.setErrorEmbed(() -> new EmbedBuilder().setTimestamp(Instant.now()).setColor(Color.RED).setTitle("Error"));
+        settings.setSuccessEmbed(() -> new EmbedBuilder().setTimestamp(Instant.now()).setColor(Color.GREEN).setTitle("Success"));
+        settings.setPrefixHandler(PrefixHandler.defaultHandler(new ObjectMapper()));
+        try {
+            settings.setTranslations(TranslationCollector.getInstance().getTranslations("en"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        settings.setLogExecutedCommands(false);
+        return settings;
+    }
 
     /**
      * Returns the prefix handler.
