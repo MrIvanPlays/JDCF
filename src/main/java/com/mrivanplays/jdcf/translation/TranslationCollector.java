@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -44,14 +45,24 @@ public class TranslationCollector {
                 if (in == null) {
                     return getDefault();
                 }
-                return Translations.get(in);
+                return Translations.get(in, language);
             }
         }
     }
 
+    /**
+     * Returns a copy of the supported languages.
+     *
+     * @return supported languages
+     */
+    @NotNull
+    public String[] getSupportedLanguages() {
+        return Arrays.copyOf(supportedLanguages, supportedLanguages.length);
+    }
+
     private Translations getDefault() throws IOException {
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("jdcf_translations_en.properties")) {
-            return Translations.get(in);
+            return Translations.get(in, "en");
         }
     }
 }
