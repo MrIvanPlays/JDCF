@@ -1,0 +1,93 @@
+buildscript {
+    repositories {
+        maven { url 'http://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+apply plugin: 'propdeps'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    provided('net.dv8tion:JDA:4.1.0_95')
+    provided('com.fasterxml.jackson.core:jackson-databind:2.10.1')
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+//    withJavadocJar()
+    withSourcesJar()
+}
+
+group = 'com.mrivanplays'
+version = '1.0.4-SNAPSHOT'
+description = 'Command framework for Java Discord API'
+
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://repo.mrivanplays.com/repository/ivan-releases/'
+            def snapshotsRepoUrl = 'https://repo.mrivanplays.com/repository/ivan-snapshots/'
+            url version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = nexusUser
+                password = nexusPass
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'JDCF'
+//            from components.java
+            artifact sourcesJar
+//            artifact javadocJar
+
+            pom {
+                name = 'JavaDiscordCommandFramework'
+                description =  'Command framework for Java Discord API'
+                licenses {
+                    license {
+                        name = 'MIT'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'MrIvanPlays'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/MrIvanPlays/JDCF.git'
+                    developerConnection = 'scm:git:git@github.com:MrIvanPlays/JDCF.git'
+                    url = 'https://github.com/MrIvanPlays/JDCF'
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = 'https://github.com/MrIvanPlays/JDCF/issues'
+                }
+            }
+        }
+    }
+}
+
+//javadoc {
+//    source = sourceSets.main.allJava
+//    classpath = configurations.compile
+//}
+
+compileJava.options.encoding = 'UTF-8'
