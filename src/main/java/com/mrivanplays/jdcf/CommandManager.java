@@ -1,5 +1,7 @@
 package com.mrivanplays.jdcf;
 
+import com.mrivanplays.jdcf.args.ArgumentResolverContext;
+import com.mrivanplays.jdcf.args.ArgumentResolvers;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.builtin.CommandPrefix;
 import com.mrivanplays.jdcf.builtin.help.CommandHelp;
@@ -254,14 +256,23 @@ public final class CommandManager implements EventListener {
             String[] content = event.getMessage().getContentRaw().split(" ");
             String aliasPrefix = content[0];
             if (commandSettings.isEnableMentionInsteadPrefix()) {
-                // checks if the first typed thing is a mention to our bot
-                if (aliasPrefix.equalsIgnoreCase(event.getJDA().getSelfUser().getAsMention())) {
-                    executeCommand(content[1], event, content, 2);
+                try {
+                    User user = ArgumentResolvers.USER_MENTION.resolve(new ArgumentResolverContext(aliasPrefix, event.getGuild(), event.getJDA()));
+                    if (user.getId().equalsIgnoreCase(event.getJDA().getSelfUser().getId())) {
+                        executeCommand(content[1], event, content, 2);
+                    }
+                } catch (Exception e) {
+                    // not a mention
+                    if (aliasPrefix.startsWith(prefix)) {
+                        String name = aliasPrefix.replace(prefix, "");
+                        executeCommand(name, event, content, 1);
+                    }
                 }
-            }
-            if (aliasPrefix.startsWith(prefix)) { // checks if the first typed thing starts with the guild prefix
-                String name = aliasPrefix.replace(prefix, "");
-                executeCommand(name, event, content, 1);
+            } else {
+                if (aliasPrefix.startsWith(prefix)) {
+                    String name = aliasPrefix.replace(prefix, "");
+                    executeCommand(name, event, content, 1);
+                }
             }
         }
         if (generic.getClass().isAssignableFrom(ShutdownEvent.class)) {
