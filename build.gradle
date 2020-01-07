@@ -20,6 +20,11 @@ repositories {
     jcenter()
 }
 
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
+    resolutionStrategy.cacheChangingModulesFor 10, 'minutes'
+}
+
 dependencies {
     testImplementation 'junit:junit:4.12'
     provided('net.dv8tion:JDA:4.1.0_95')
@@ -53,8 +58,8 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'JDCF'
-//            from components.java
-            artifact sourcesJar
+            from components.java
+//            artifact sourcesJar
 //            artifact javadocJar
 
             pom {
