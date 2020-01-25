@@ -4,6 +4,8 @@ import com.mrivanplays.jdcf.util.Utils;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -41,11 +43,19 @@ public class TranslationCollector {
         if (!Utils.contains(language.toLowerCase(), supportedLanguages)) {
             return getDefault();
         } else {
-            try (InputStream in = getClass().getClassLoader().getResourceAsStream("jdcf_translations_" + language.toLowerCase() + ".properties")) {
-                if (in == null) {
-                    return getDefault();
+            String translationFileName = "jdcf_translations_" + language.toLowerCase() + ".properties";
+            File physicalTranslationFile = new File(".", translationFileName);
+            if (physicalTranslationFile.exists()) {
+                try (InputStream in = new FileInputStream(physicalTranslationFile)) {
+                    return Translations.get(in, language);
                 }
-                return Translations.get(in, language);
+            } else {
+                try (InputStream in = getClass().getClassLoader().getResourceAsStream(translationFileName)) {
+                    if (in == null) {
+                        return getDefault();
+                    }
+                    return Translations.get(in, language);
+                }
             }
         }
     }
