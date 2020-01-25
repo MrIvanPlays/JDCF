@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,21 @@ public class Translations {
         Objects.requireNonNull(in, "in");
         Objects.requireNonNull(language, "language");
         return new Translations(new PropertyResourceBundle(in), language);
+    }
+
+    /**
+     * Retrieves a new {@link PropertyResourceBundle} {@link Translations}
+     *
+     * @param reader a ".properties" resource's reader
+     * @param language the language of these translations
+     * @return translations
+     * @throws IOException if an i/o error occurs
+     */
+    @NotNull
+    public static Translations get(@NotNull Reader reader, @NotNull String language) throws IOException {
+        Objects.requireNonNull(reader, "reader");
+        Objects.requireNonNull(language, "language");
+        return new Translations(new PropertyResourceBundle(reader), language);
     }
 
     /**

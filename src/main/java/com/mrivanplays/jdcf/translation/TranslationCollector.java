@@ -5,9 +5,12 @@ import com.mrivanplays.jdcf.util.Utils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -46,15 +49,12 @@ public class TranslationCollector {
             String translationFileName = "jdcf_translations_" + language.toLowerCase() + ".properties";
             File physicalTranslationFile = new File(".", translationFileName);
             if (physicalTranslationFile.exists()) {
-                try (InputStream in = new FileInputStream(physicalTranslationFile)) {
-                    return Translations.get(in, language);
+                try (Reader reader = Files.newBufferedReader(physicalTranslationFile.toPath(), StandardCharsets.UTF_8)) {
+                    return Translations.get(reader, language);
                 }
             } else {
-                try (InputStream in = getClass().getClassLoader().getResourceAsStream(translationFileName)) {
-                    if (in == null) {
-                        return getDefault();
-                    }
-                    return Translations.get(in, language);
+                try (Reader reader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(translationFileName), StandardCharsets.UTF_8)) {
+                    return Translations.get(reader, language);
                 }
             }
         }
