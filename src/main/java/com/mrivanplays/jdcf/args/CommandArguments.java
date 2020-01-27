@@ -184,7 +184,7 @@ public final class CommandArguments {
         for (int i = from; i < args.size(); i++) {
             builder.append(args.get(i)).append(separator);
         }
-        return builder.substring(0, builder.length() - 1);
+        return builder.toString().trim();
     }
 
     /**
@@ -199,7 +199,7 @@ public final class CommandArguments {
         for (int i = from; i < args.size(); i++) {
             builder.append(args.get(i)).append(separator);
         }
-        return builder.substring(0, builder.length() - 1);
+        return builder.toString().trim();
     }
 
     /**

@@ -67,29 +67,37 @@ public class CommandHelp extends Command {
                                     message.addReaction(arrowLeft).queue();
                                 }
                                 message.addReaction(arrowRight).queue();
-                                eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                                eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                                     ReactionEmote emote = event.getReactionEmote();
+                                    if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                                        message.removeReaction(emote.getEmote()).queue();
+                                        return false;
+                                    }
                                     return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                                             && !emote.isEmote())
                                             && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
                                 }, event -> {
                                     ReactionEmote emote = event.getReactionEmote();
                                     if (emote.getName().equals(arrowLeft)) {
-                                        handleAction(message, true, paginator, pageNumber, author.getIdLong());
+                                        handleAction(message, author, true, paginator, pageNumber, author.getIdLong());
                                     } else {
-                                        handleAction(message, false, paginator, pageNumber, author.getIdLong());
+                                        handleAction(message, author, false, paginator, pageNumber, author.getIdLong());
                                     }
                                 }, () -> message.clearReactions().queue());
                             } else {
                                 if (pageNumber != 1) {
                                     message.addReaction(arrowLeft).queue();
-                                    eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                                    eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                                         ReactionEmote emote = event.getReactionEmote();
+                                        if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                                            message.removeReaction(emote.getEmote()).queue();
+                                            return false;
+                                        }
                                         return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                                                 && !emote.isEmote())
                                                 && (arrowLeft.equals(emote.getName()));
                                     }, event -> {
-                                        handleAction(message, true, paginator, pageNumber, author.getIdLong());
+                                        handleAction(message, author, true, paginator, pageNumber, author.getIdLong());
                                     }, () -> message.clearReactions().queue());
                                 }
                             }
@@ -102,13 +110,17 @@ public class CommandHelp extends Command {
                 channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
                     if (paginator.hasNext(1)) {
                         message.addReaction(arrowRight).queue();
-                        eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+                        eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                             ReactionEmote emote = event.getReactionEmote();
+                            if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                                message.removeReaction(emote.getEmote()).queue();
+                                return false;
+                            }
                             return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                                     && !emote.isEmote())
                                     && (arrowRight.equals(emote.getName()));
                         }, event -> {
-                            handleAction(message, false, paginator, 1, author.getIdLong());
+                            handleAction(message, author, false, paginator, 1, author.getIdLong());
                         }, () -> message.clearReactions().queue());
                     }
                 });
@@ -159,7 +171,7 @@ public class CommandHelp extends Command {
         return commandManager.getSettings().getTranslations().getTranslation("help_" + keyword + "_keyword");
     }
 
-    private void handleAction(Message message, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {
+    private void handleAction(Message message, User author, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {
         message.clearReactions().queue();
         if (isArrowLeft) {
             int page = currentPage - 1;
@@ -175,17 +187,21 @@ public class CommandHelp extends Command {
             if (paginator.hasNext(page)) {
                 message.addReaction(arrowRight).queue();
             }
-            eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+            eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
+                if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                    message.removeReaction(emote.getEmote()).queue();
+                    return false;
+                }
                 return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                         && !emote.isEmote())
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (emote.getName().equals(arrowLeft)) {
-                    handleAction(message, true, paginator, currentPageMap.get(userId), userId);
+                    handleAction(message, author, true, paginator, currentPageMap.get(userId), userId);
                 } else {
-                    handleAction(message, false, paginator, currentPageMap.get(userId), userId);
+                    handleAction(message, author, false, paginator, currentPageMap.get(userId), userId);
                 }
             }, () -> message.clearReactions().queue());
         } else {
@@ -200,17 +216,21 @@ public class CommandHelp extends Command {
             if (paginator.hasNext(page)) {
                 message.addReaction(arrowRight).queue();
             }
-            eventWaiter.waitFor(GuildMessageReactionAddEvent.class, event -> {
+            eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
+                if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                    message.removeReaction(emote.getEmote()).queue();
+                    return false;
+                }
                 return (!event.getUser().isBot() && event.getMessageIdLong() == message.getIdLong()
                         && !emote.isEmote())
                         && (arrowLeft.equals(emote.getName()) || arrowRight.equals(emote.getName()));
             }, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (emote.getName().equals(arrowLeft)) {
-                    handleAction(message, true, paginator, (currentPageMap.get(userId)), userId);
+                    handleAction(message, author, true, paginator, (currentPageMap.get(userId)), userId);
                 } else {
-                    handleAction(message, false, paginator, (currentPageMap.get(userId)), userId);
+                    handleAction(message, author, false, paginator, (currentPageMap.get(userId)), userId);
                 }
             }, () -> message.clearReactions().queue());
         }
