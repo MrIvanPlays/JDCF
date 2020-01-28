@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -21,43 +22,58 @@ class HelpPaginator {
     private final Supplier<EmbedBuilder> errorEmbed;
     private final Translations translations;
 
-    HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, Member commandExecutor, User author, long guildId) {
+    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, Member commandExecutor, User author, long guildId) {
         this.translations = settings.getTranslations();
-        List<EmbedBuilder> pagesWithCommands = new ArrayList<>();
-        List<RegisteredCommand> filteredCommands = commands.stream()
-                .filter(cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
-                .collect(Collectors.toList());
+        this.errorEmbed = settings.getErrorEmbed();
         String prefix = settings.getPrefixHandler().getPrefix(guildId);
-        if (filteredCommands.size() == settings.getCommandsPerHelpPage()) {
-            EmbedBuilder embed = settings.getHelpCommandEmbed().get();
-            for (RegisteredCommand in : filteredCommands) {
-                embed.appendDescription("`" + prefix + in.getUsage() + "` - " + in.getDescription() + "\n");
+        if (commands.size() == 1) {
+            List<RegisteredCommand> page = commands.get(0)
+                    .stream()
+                    .filter(cmd ->
+                            cmd.getDescription() != null & cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
+                    .collect(Collectors.toList());
+            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), author);
+            StringBuilder commandDescription = new StringBuilder();
+            for (RegisteredCommand in : page) {
+                commandDescription.append("`")
+                        .append(prefix)
+                        .append(in.getUsage())
+                        .append("` - ")
+                        .append(in.getDescription())
+                        .append("\n");
             }
-            pagesWithCommands.add(embed);
-        } else {
-            for (int i = 0; i < commands.size(); i += settings.getCommandsPerHelpPage()) {
-                EmbedBuilder embed = settings.getHelpCommandEmbed().get();
-                for (RegisteredCommand in : filteredCommands.subList(i, Math.min(i + settings.getCommandsPerHelpPage(), filteredCommands.size()))) {
-                    embed.appendDescription("`" + prefix + in.getUsage() + "` - " + in.getDescription() + "\n");
-                }
-                if (embed.getDescriptionBuilder().length() == 0) {
-                    continue;
-                }
-                pagesWithCommands.add(embed);
-            }
+            this.pages = Collections.singletonList(embed.setDescription(
+                    translations.getTranslation("help_page_specify", 1, 1)
+                            + "\n" + "\n" + commandDescription.toString()));
+            return;
         }
+        List<List<RegisteredCommand>> filteredPages =
+                commands.stream().map(page ->
+                        page.stream()
+                                .filter(cmd ->
+                                        cmd.getDescription() != null && cmd.getUsage() != null
+                                                && hasPermission(commandExecutor, cmd.getPermissions()))
+                                .collect(Collectors.toList())
+                ).collect(Collectors.toList());
         List<EmbedBuilder> pages = new ArrayList<>();
-        for (int i = 0; i < pagesWithCommands.size(); i++) {
-            EmbedBuilder embed = pagesWithCommands.get(i);
-            StringBuilder currentDescriptionBuilder = embed.getDescriptionBuilder();
-            String currentDescription = currentDescriptionBuilder.substring(0, currentDescriptionBuilder.length() - 2);
-            pages.add(EmbedUtil.setAuthor(embed, author)
-                    .setDescription(translations.getTranslation("help_page_specify", (i + 1), pagesWithCommands.size())
-                    + "\n" + "\n" + currentDescription));
+        for (int i = 0; i < filteredPages.size(); i++) {
+            List<RegisteredCommand> page = filteredPages.get(i);
+            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), author);
+            StringBuilder commandDescription = new StringBuilder();
+            for (RegisteredCommand in : page) {
+                commandDescription.append("`")
+                        .append(prefix)
+                        .append(in.getUsage())
+                        .append("` - ")
+                        .append(in.getDescription())
+                        .append("\n");
+            }
+            pages.add(embed.setDescription(
+                    translations.getTranslation("help_page_specify", (i + 1), filteredPages.size())
+                            + "\n" + "\n" + commandDescription.toString()
+            ));
         }
         this.pages = pages;
-        this.errorEmbed = settings.getErrorEmbed();
-        pagesWithCommands.clear();
     }
 
     private boolean hasPermission(Member member, Permission[] permissions) {

@@ -78,16 +78,17 @@ public final class CommandManager implements EventListener {
         logger = LoggerFactory.getLogger(CommandManager.class);
         setSettings(settings);
         getSettings().getExecutorService().schedule(() -> {
+            if (getSettings().isEnablePrefixCommand()) {
+                if (!getCommand("prefix").isPresent()) {
+                    registerCommand(new CommandPrefix(this));
+                }
+            }
             if (getSettings().isEnableHelpCommand()) {
                 if (!getCommand("help").isPresent()) {
                     EventWaiter eventWaiter = new EventWaiter(getSettings().getExecutorService());
                     waiterRegistry.accept(eventWaiter);
-                    registerCommand(new CommandHelp(this, eventWaiter));
-                }
-            }
-            if (getSettings().isEnablePrefixCommand()) {
-                if (!getCommand("prefix").isPresent()) {
-                    registerCommand(new CommandPrefix(this));
+                    List<List<RegisteredCommand>> paginatedCommands = Utils.getPages(commands, getSettings().getCommandsPerHelpPage());
+                    registerCommand(new CommandHelp(this, eventWaiter, paginatedCommands));
                 }
             }
         }, 1, TimeUnit.SECONDS);

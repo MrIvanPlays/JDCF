@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -32,11 +33,13 @@ public class CommandHelp extends Command {
     private final String arrowRight = "\u27A1";
     private final String arrowLeft = "\u2B05";
     private final Map<Long, Integer> currentPageMap = new HashMap<>();
+    private List<List<RegisteredCommand>> paginatedCommands;
 
-    public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter) {
+    public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter, List<List<RegisteredCommand>> paginatedCommands) {
         super("help");
         this.commandManager = commandManager;
         this.eventWaiter = eventWaiter;
+        this.paginatedCommands = paginatedCommands;
     }
 
     @Override
@@ -49,7 +52,7 @@ public class CommandHelp extends Command {
         String pageName = translations.getTranslation("help_page_specify").split(" ")[0];
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
-        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings,
+        HelpPaginator paginator = new HelpPaginator(paginatedCommands, settings,
                 context.getMember(), context.getAuthor(), context.getGuild().getIdLong());
         args.nextInt().ifPresent(pageNumber -> {
             MessageEmbed page = paginator.getPage(pageNumber).build();
@@ -164,6 +167,7 @@ public class CommandHelp extends Command {
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
         });
+        System.gc();
         return true;
     }
 
