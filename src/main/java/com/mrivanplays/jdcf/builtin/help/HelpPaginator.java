@@ -97,7 +97,7 @@ class HelpPaginator {
                     }
 
                     for (int i1 = 0; i1 < commandsToGet; i1++) {
-                        pageFiltered.add(nextPage.get(i1));
+                        pageFiltered.add(nextPage.remove(i1));
                     }
                     filtered.add(pageFiltered);
                     tookCommandsFrom.add(nextPage);
