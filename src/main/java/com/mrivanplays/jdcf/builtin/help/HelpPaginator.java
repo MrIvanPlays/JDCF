@@ -79,9 +79,12 @@ class HelpPaginator {
     private List<List<RegisteredCommand>> filterPages(List<List<RegisteredCommand>> unfiltered, int pageSize,
                                                       Predicate<RegisteredCommand> filter) {
         List<List<RegisteredCommand>> filtered = new ArrayList<>();
-        List<List<RegisteredCommand>> tookCommandsFrom = new ArrayList<>();
         for (int i = 0; i < unfiltered.size(); i++) {
-            List<RegisteredCommand> pageFiltered = unfiltered.get(i).stream()
+            List<RegisteredCommand> pageUnfiltered = unfiltered.get(i);
+            if (filtered.contains(pageUnfiltered)) {
+                continue;
+            }
+            List<RegisteredCommand> pageFiltered = pageUnfiltered.stream()
                     .filter(filter).collect(Collectors.toList());
             if (pageFiltered.size() < pageSize) {
                 if (i + 1 >= unfiltered.size()) {
@@ -100,14 +103,11 @@ class HelpPaginator {
                         pageFiltered.add(nextPage.remove(i1));
                     }
                     filtered.add(pageFiltered);
-                    tookCommandsFrom.add(nextPage);
+                    filtered.add(nextPage);
                 }
             } else {
                 filtered.add(pageFiltered);
             }
-        }
-        if (tookCommandsFrom.size() > 0) {
-            filtered.addAll(filterPages(tookCommandsFrom, pageSize, filter));
         }
         return filtered;
     }
