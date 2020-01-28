@@ -200,7 +200,7 @@ public final class CommandSettings {
      * @param commandsPerHelpPage number
      */
     public void setCommandsPerHelpPage(int commandsPerHelpPage) {
-        this.commandsPerHelpPage = commandsPerHelpPage;
+        this.commandsPerHelpPage = commandsPerHelpPage + 2;
     }
 
     /**
