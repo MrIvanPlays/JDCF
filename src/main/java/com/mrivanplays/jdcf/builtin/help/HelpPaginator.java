@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -47,14 +48,9 @@ class HelpPaginator {
                             + "\n" + "\n" + commandDescription.toString()));
             return;
         }
-        List<List<RegisteredCommand>> filteredPages =
-                commands.stream().map(page ->
-                        page.stream()
-                                .filter(cmd ->
-                                        cmd.getDescription() != null && cmd.getUsage() != null
-                                                && hasPermission(commandExecutor, cmd.getPermissions()))
-                                .collect(Collectors.toList())
-                ).collect(Collectors.toList());
+        List<List<RegisteredCommand>> filteredPages = filterPages(commands,
+                settings.getCommandsPerHelpPage(),
+                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()));
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < filteredPages.size(); i++) {
             List<RegisteredCommand> page = filteredPages.get(i);
@@ -78,6 +74,42 @@ class HelpPaginator {
 
     private boolean hasPermission(Member member, Permission[] permissions) {
         return permissions == null || member.hasPermission(permissions);
+    }
+
+    private List<List<RegisteredCommand>> filterPages(List<List<RegisteredCommand>> unfiltered, int pageSize,
+                                                      Predicate<RegisteredCommand> filter) {
+        List<List<RegisteredCommand>> filtered = new ArrayList<>();
+        List<List<RegisteredCommand>> tookCommandsFrom = new ArrayList<>();
+        for (int i = 0; i < unfiltered.size(); i++) {
+            List<RegisteredCommand> pageFiltered = unfiltered.get(i).stream()
+                    .filter(filter).collect(Collectors.toList());
+            if (pageFiltered.size() < pageSize) {
+                if (i + 1 > unfiltered.size()) {
+                    filtered.add(pageFiltered);
+                } else {
+                    List<RegisteredCommand> nextPage = unfiltered.get(i + 1).stream()
+                            .filter(filter).collect(Collectors.toList());
+                    int commandsToGet = pageSize - pageFiltered.size();
+                    if (nextPage.size() < commandsToGet) {
+                        pageFiltered.addAll(nextPage);
+                        filtered.add(pageFiltered);
+                        continue;
+                    }
+
+                    for (int i1 = 0; i1 < commandsToGet; i1++) {
+                        pageFiltered.add(nextPage.get(i1));
+                    }
+                    filtered.add(pageFiltered);
+                    tookCommandsFrom.add(nextPage);
+                }
+            } else {
+                filtered.add(pageFiltered);
+            }
+        }
+        if (tookCommandsFrom.size() > 0) {
+            filtered.addAll(filterPages(tookCommandsFrom, pageSize, filter));
+        }
+        return filtered;
     }
 
     EmbedBuilder getPage(int page) {
