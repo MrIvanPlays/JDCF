@@ -90,7 +90,7 @@ class HelpPaginator {
                     List<RegisteredCommand> nextPage = unfiltered.get(i + 1).stream()
                             .filter(filter).collect(Collectors.toList());
                     int commandsToGet = pageSize - pageFiltered.size();
-                    if (nextPage.size() < commandsToGet) {
+                    if (nextPage.size() <= commandsToGet) {
                         pageFiltered.addAll(nextPage);
                         filtered.add(pageFiltered);
                         continue;
