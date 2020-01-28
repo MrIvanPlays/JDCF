@@ -69,7 +69,7 @@ public class CommandHelp extends Command {
                                 message.addReaction(arrowRight).queue();
                                 eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                                     ReactionEmote emote = event.getReactionEmote();
-                                    if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                                    if (event.getMessageIdLong() == message.getIdLong() && (!author.isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                         message.removeReaction(emote.getEmote()).queue();
                                         return false;
                                     }
@@ -89,7 +89,7 @@ public class CommandHelp extends Command {
                                     message.addReaction(arrowLeft).queue();
                                     eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                                         ReactionEmote emote = event.getReactionEmote();
-                                        if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                                        if (event.getMessageIdLong() == message.getIdLong() && (!author.isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                             message.removeReaction(emote.getEmote()).queue();
                                             return false;
                                         }
@@ -112,7 +112,7 @@ public class CommandHelp extends Command {
                         message.addReaction(arrowRight).queue();
                         eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                             ReactionEmote emote = event.getReactionEmote();
-                            if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                            if (event.getMessageIdLong() == message.getIdLong() && (!author.isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                 message.removeReaction(emote.getEmote()).queue();
                                 return false;
                             }
@@ -189,7 +189,7 @@ public class CommandHelp extends Command {
             }
             eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
-                if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                if (event.getMessageIdLong() == message.getIdLong() && (!author.isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                     message.removeReaction(emote.getEmote()).queue();
                     return false;
                 }
@@ -218,7 +218,7 @@ public class CommandHelp extends Command {
             }
             eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
-                if (event.getMessageIdLong() == message.getIdLong() && !event.getUser().getId().equalsIgnoreCase(author.getId())) {
+                if (event.getMessageIdLong() == message.getIdLong() && (!author.isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                     message.removeReaction(emote.getEmote()).queue();
                     return false;
                 }
