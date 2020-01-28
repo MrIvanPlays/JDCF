@@ -79,9 +79,11 @@ class HelpPaginator {
     private List<List<RegisteredCommand>> filterPages(List<List<RegisteredCommand>> unfiltered, int pageSize,
                                                       Predicate<RegisteredCommand> filter) {
         List<List<RegisteredCommand>> filtered = new ArrayList<>();
+        List<List<RegisteredCommand>> fillInCommands = new ArrayList<>();
         for (int i = 0; i < unfiltered.size(); i++) {
             List<RegisteredCommand> pageUnfiltered = unfiltered.get(i);
-            if (filtered.contains(pageUnfiltered)) {
+            if (fillInCommands.contains(pageUnfiltered)) {
+                commandFill(unfiltered, pageSize, filter, filtered, fillInCommands, i, pageUnfiltered);
                 continue;
             }
             List<RegisteredCommand> pageFiltered = pageUnfiltered.stream()
@@ -90,26 +92,33 @@ class HelpPaginator {
                 if (i + 1 >= unfiltered.size()) {
                     filtered.add(pageFiltered);
                 } else {
-                    List<RegisteredCommand> nextPage = unfiltered.get(i + 1).stream()
-                            .filter(filter).collect(Collectors.toList());
-                    int commandsToGet = pageSize - pageFiltered.size();
-                    if (nextPage.size() <= commandsToGet) {
-                        pageFiltered.addAll(nextPage);
-                        filtered.add(pageFiltered);
-                        continue;
-                    }
-
-                    for (int i1 = 0; i1 < commandsToGet; i1++) {
-                        pageFiltered.add(nextPage.remove(i1));
-                    }
-                    filtered.add(pageFiltered);
-                    filtered.add(nextPage);
+                    commandFill(unfiltered, pageSize, filter, filtered, fillInCommands, i, pageFiltered);
                 }
             } else {
                 filtered.add(pageFiltered);
             }
         }
+        fillInCommands.clear();
         return filtered;
+    }
+
+    private void commandFill(List<List<RegisteredCommand>> unfiltered, int pageSize,
+                             Predicate<RegisteredCommand> filter, List<List<RegisteredCommand>> filtered,
+                             List<List<RegisteredCommand>> fillInCommands, int i, List<RegisteredCommand> pageUnfiltered) {
+        List<RegisteredCommand> nextPage = unfiltered.get(i + 1).stream()
+                .filter(filter).collect(Collectors.toList());
+        int commandsToGet = pageSize - pageUnfiltered.size();
+        if (nextPage.size() <= commandsToGet) {
+            pageUnfiltered.addAll(nextPage);
+            filtered.add(pageUnfiltered);
+            return;
+        }
+
+        for (int i1 = 0; i1 < commandsToGet; i1++) {
+            pageUnfiltered.add(nextPage.remove(i1));
+        }
+        filtered.add(pageUnfiltered);
+        fillInCommands.add(nextPage);
     }
 
     EmbedBuilder getPage(int page) {
