@@ -266,13 +266,17 @@ public final class CommandManager implements EventListener {
                     // not a mention
                     if (aliasPrefix.startsWith(prefix)) {
                         String name = aliasPrefix.replace(prefix, "");
-                        executeCommand(name, event, content, 1);
+                        if (!name.isEmpty()) {
+                            executeCommand(name, event, content, 1);
+                        }
                     }
                 }
             } else {
                 if (aliasPrefix.startsWith(prefix)) {
                     String name = aliasPrefix.replace(prefix, "");
-                    executeCommand(name, event, content, 1);
+                    if (!name.isEmpty()) {
+                        executeCommand(name, event, content, 1);
+                    }
                 }
             }
         }
