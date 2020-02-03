@@ -53,7 +53,7 @@ public class CommandHelp extends Command {
         User author = context.getAuthor();
         TextChannel channel = context.getChannel();
         HelpPaginator paginator = new HelpPaginator(paginatedCommands, settings,
-                context.getMember(), context.getAuthor(), context.getGuild().getIdLong());
+                context.getMember(), context.getAuthor(), context.getGuild().getIdLong(), context.getAlias());
         args.nextInt().ifPresent(pageNumber -> {
             MessageEmbed page = paginator.getPage(pageNumber).build();
             if (page.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {

@@ -23,7 +23,7 @@ class HelpPaginator {
     private final Supplier<EmbedBuilder> errorEmbed;
     private final Translations translations;
 
-    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, Member commandExecutor, User author, long guildId) {
+    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, Member commandExecutor, User author, long guildId, String alias) {
         this.translations = settings.getTranslations();
         this.errorEmbed = settings.getErrorEmbed();
         String prefix = settings.getPrefixHandler().getPrefix(guildId);
@@ -31,7 +31,7 @@ class HelpPaginator {
             List<RegisteredCommand> page = commands.get(0)
                     .stream()
                     .filter(cmd ->
-                            cmd.getDescription() != null & cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()))
+                            cmd.getDescription() != null & cmd.getUsage() != null && cmd.hasPermission(commandExecutor, alias))
                     .collect(Collectors.toList());
             EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), author);
             StringBuilder commandDescription = new StringBuilder();
@@ -50,7 +50,7 @@ class HelpPaginator {
         }
         List<List<RegisteredCommand>> filteredPages = filterPages(commands,
                 settings.getCommandsPerHelpPage(),
-                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && hasPermission(commandExecutor, cmd.getPermissions()));
+                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && cmd.hasPermission(commandExecutor, alias));
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < filteredPages.size(); i++) {
             List<RegisteredCommand> page = filteredPages.get(i);
@@ -70,10 +70,6 @@ class HelpPaginator {
             ));
         }
         this.pages = pages;
-    }
-
-    private boolean hasPermission(Member member, Permission[] permissions) {
-        return permissions == null || member.hasPermission(permissions);
     }
 
     private List<List<RegisteredCommand>> filterPages(List<List<RegisteredCommand>> unfiltered, int pageSize,
