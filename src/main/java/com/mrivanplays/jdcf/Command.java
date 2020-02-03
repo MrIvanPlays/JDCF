@@ -3,6 +3,7 @@ package com.mrivanplays.jdcf;
 import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,24 @@ public abstract class Command {
     @Nullable
     public Permission[] getPermissions() {
         return permissions;
+    }
+
+    /**
+     * An overridable method which checks if the member has the required permission to execute the command.
+     *
+     * @param member the member you want to check if has permission
+     * @param alias the alias that triggered the command
+     * @return <code>true</code> if has, <code>false</code> otherwise
+     */
+    public boolean hasPermission(@NotNull Member member, @NotNull String alias) {
+        triggerNonNullCheck(member, alias);
+        return permissions == null || member.hasPermission(permissions);
+    }
+
+    protected void triggerNonNullCheck(Member member, String alias) {
+        // helper method for non-null checking
+        Objects.requireNonNull(member, "Cannot check permissions of a member which is null.");
+        Objects.requireNonNull(alias, "alias");
     }
 
     /**

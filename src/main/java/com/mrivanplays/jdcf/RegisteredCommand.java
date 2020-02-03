@@ -3,6 +3,7 @@ package com.mrivanplays.jdcf;
 import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,6 +75,17 @@ public final class RegisteredCommand {
     @Nullable
     public String[] getAliases() {
         return aliases;
+    }
+
+    /**
+     * Checks if the specified member has the required permission to execute this command.
+     *
+     * @param member the member you want to check if has permission
+     * @param alias the alias that triggered the command
+     * @return <code>true</code> if has permission, <code>false</code> otherwise
+     */
+    public boolean hasPermission(@NotNull Member member, @NotNull String alias) {
+        return command.hasPermission(member, alias);
     }
 
     /**

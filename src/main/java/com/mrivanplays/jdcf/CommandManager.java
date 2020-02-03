@@ -209,7 +209,8 @@ public final class CommandManager implements EventListener {
 
     /**
      * Executes the specified command line with the specified arguments. When dispatched, the author and member of the
-     * command are the {@link JDA#getSelfUser()} and {@link Guild#getSelfMember()}
+     * command are the {@link JDA#getSelfUser()} and {@link Guild#getSelfMember()}. DISCLAIMER: This method does not
+     * check for permissions, meaning that when you call it you mean "I want this command executed no matter what".
      *
      * @param jda         the jda instance from which the command should be executed
      * @param guild       the guild where the command should be executed
@@ -303,7 +304,7 @@ public final class CommandManager implements EventListener {
         User author = event.getAuthor();
         if (commandOptional.isPresent()) {
             RegisteredCommand command = commandOptional.get();
-            if (command.getPermissions() != null && !member.hasPermission(command.getPermissions())) {
+            if (!command.hasPermission(member, name)) {
                 callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
                         .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                 event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
