@@ -13,9 +13,9 @@ import com.mrivanplays.jdcf.util.EventWaiter;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 
@@ -36,7 +36,7 @@ public class CommandHelp extends Command {
     private List<List<RegisteredCommand>> paginatedCommands;
 
     public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter, List<List<RegisteredCommand>> paginatedCommands) {
-        super("help");
+        super("help", false);
         this.commandManager = commandManager;
         this.eventWaiter = eventWaiter;
         this.paginatedCommands = paginatedCommands;
@@ -51,9 +51,8 @@ public class CommandHelp extends Command {
         }
         String pageName = translations.getTranslation("help_page_specify").split(" ")[0];
         User author = context.getAuthor();
-        TextChannel channel = context.getChannel();
-        HelpPaginator paginator = new HelpPaginator(paginatedCommands, settings,
-                context.getMember(), context.getAuthor(), context.getGuild().getIdLong(), context.getAlias());
+        MessageChannel channel = context.getChannel();
+        HelpPaginator paginator = new HelpPaginator(paginatedCommands, settings, context);
         args.nextInt().ifPresent(pageNumber -> {
             MessageEmbed page = paginator.getPage(pageNumber).build();
             if (page.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {

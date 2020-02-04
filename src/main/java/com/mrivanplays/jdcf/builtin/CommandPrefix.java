@@ -24,7 +24,7 @@ public class CommandPrefix extends Command {
     private final CommandManager commandManager;
 
     public CommandPrefix(CommandManager commandManager) {
-        super("prefix");
+        super("prefix", true);
         this.commandManager = commandManager;
     }
 
@@ -32,12 +32,6 @@ public class CommandPrefix extends Command {
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
         CommandSettings settings = commandManager.getSettings();
         Translations translations = settings.getTranslations();
-        if (args.size() == 0) {
-            context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())
-                    .setDescription(translations.getTranslation("prefix_is",
-                            settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong()))).build()).queue();
-            return false;
-        }
         args.nextString().ifPresent(subCommand -> {
             if (subCommand.equalsIgnoreCase("set")) {
                 if (!context.getMember().hasPermission(Permission.ADMINISTRATOR)) {
@@ -58,6 +52,12 @@ public class CommandPrefix extends Command {
                         context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     }
                 });
+            }
+        }).orElse(failReason -> {
+            if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
+                context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())
+                        .setDescription(translations.getTranslation("prefix_is",
+                                settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong()))).build()).queue();
             }
         });
         return true;

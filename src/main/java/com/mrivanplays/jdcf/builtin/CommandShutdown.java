@@ -2,6 +2,7 @@ package com.mrivanplays.jdcf.builtin;
 
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
+import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.JDA;
@@ -28,7 +29,7 @@ public class CommandShutdown extends Command {
      * @param botOwnerId the discord user id, owner of this bot (the only one who can execute this command)
      */
     public CommandShutdown(@NotNull String botOwnerId) {
-        super("shutdown");
+        super("shutdown", true);
         this.botOwnerId = Objects.requireNonNull(botOwnerId, "botOwnerId");
     }
 
@@ -36,9 +37,8 @@ public class CommandShutdown extends Command {
      * {@inheritDoc}
      */
     @Override
-    public boolean hasPermission(@NotNull Member member, @NotNull String alias) {
-        triggerNonNullCheck(member, alias);
-        return member.getId().equalsIgnoreCase(botOwnerId);
+    public boolean hasPermission(@NotNull PermissionCheckContext context) {
+        return context.getMember().getId().equalsIgnoreCase(botOwnerId);
     }
 
     /**

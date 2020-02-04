@@ -39,6 +39,7 @@ public final class CommandSettings {
     private TextChannel commandExecuteChannel;
     private Translations translations;
     private boolean logExecutedCommands;
+    private boolean allowDMSCommands;
 
     /**
      * Returns the default settings object
@@ -65,6 +66,7 @@ public final class CommandSettings {
             e.printStackTrace();
         }
         settings.setLogExecutedCommands(false);
+        settings.setAllowDMSCommands(true);
         return settings;
     }
 
@@ -334,5 +336,23 @@ public final class CommandSettings {
      */
     public void setLogExecutedCommands(boolean logExecutedCommands) {
         this.logExecutedCommands = logExecutedCommands;
+    }
+
+    /**
+     * Returns whenever the framework should allow commands to be executed not only in guilds, but also DMs
+     *
+     * @return <code>true</code> if should allow, <code>false</code> otherwise
+     */
+    public boolean isAllowDMSCommands() {
+        return allowDMSCommands;
+    }
+
+    /**
+     * Sets whenever the framework should allow commands to be executed not only in guilds, but also DMs
+     *
+     * @param allowDMSCommands value
+     */
+    public void setAllowDMSCommands(boolean allowDMSCommands) {
+        this.allowDMSCommands = allowDMSCommands;
     }
 }

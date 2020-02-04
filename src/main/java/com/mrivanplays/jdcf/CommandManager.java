@@ -18,10 +18,13 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -246,39 +249,21 @@ public final class CommandManager implements EventListener {
     // command execution handling and bot shutdown handling
     @Override
     public void onEvent(@Nonnull GenericEvent generic) {
-        if (generic.getClass().isAssignableFrom(GuildMessageReceivedEvent.class)) { // checks if that's our event
-            // yes! thats the event we want
-            GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) generic;
-            if (event.getAuthor().isBot() || event.getMember() == null) {
-                // we don't want to handle if the author is bot or the message is a webhook message
-                // (event.getMember() is null if the message is webhook message)
-                return;
+        if (commandSettings.isAllowDMSCommands()) {
+            if (generic.getClass().isAssignableFrom(MessageReceivedEvent.class)) {
+                MessageReceivedEvent event = (MessageReceivedEvent) generic;
+                Guild guild = null;
+                Member member = null;
+                if (event.getMessage().isFromGuild()) {
+                    guild = event.getGuild();
+                    member = event.getMember();
+                }
+                handleMessage(event.getMessage(), guild, event.getJDA(), event.getChannel(), event.getAuthor(), member);
             }
-            String prefix = commandSettings.getPrefixHandler().getPrefix(event.getGuild().getIdLong()); // retrieves the current guild prefix
-            String[] content = event.getMessage().getContentRaw().split(" ");
-            String aliasPrefix = content[0];
-            if (commandSettings.isEnableMentionInsteadPrefix()) {
-                try {
-                    User user = ArgumentResolvers.USER_MENTION.resolve(new ArgumentResolverContext(aliasPrefix, event.getGuild(), event.getJDA()));
-                    if (user.getId().equalsIgnoreCase(event.getJDA().getSelfUser().getId())) {
-                        executeCommand(content[1], event, content, 2);
-                    }
-                } catch (Exception e) {
-                    // not a mention
-                    if (aliasPrefix.startsWith(prefix)) {
-                        String name = aliasPrefix.replace(prefix, "");
-                        if (!name.isEmpty()) {
-                            executeCommand(name, event, content, 1);
-                        }
-                    }
-                }
-            } else {
-                if (aliasPrefix.startsWith(prefix)) {
-                    String name = aliasPrefix.replace(prefix, "");
-                    if (!name.isEmpty()) {
-                        executeCommand(name, event, content, 1);
-                    }
-                }
+        } else {
+            if (generic.getClass().isAssignableFrom(GuildMessageReceivedEvent.class)) {
+                GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) generic;
+                handleMessage(event.getMessage(), event.getGuild(), event.getJDA(), event.getChannel(), event.getAuthor(), event.getMember());
             }
         }
         if (generic.getClass().isAssignableFrom(ShutdownEvent.class)) {
@@ -297,35 +282,126 @@ public final class CommandManager implements EventListener {
         }
     }
 
-    private void executeCommand(String name, GuildMessageReceivedEvent event, String[] content, int argsFrom) {
+    private void handleMessage(Message message, Guild guild, JDA jda, MessageChannel channel, User author, Member member) {
+        if (author.isBot() || member == null) {
+            // we don't want to handle if the author is bot or the message is a webhook message
+            // (event.getMember() is null if the message is webhook message)
+            return;
+        }
+        String prefix;
+        if (message.isFromGuild()) {
+            prefix = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong());
+        } else {
+            prefix = commandSettings.getPrefixHandler().getPrefix(jda.getSelfUser(), author);
+        }
+        String[] content = message.getContentRaw().split(" ");
+        String aliasPrefix = content[0];
+        if (commandSettings.isEnableMentionInsteadPrefix()) {
+            try {
+                ArgumentResolverContext context;
+                if (message.isFromGuild()) {
+                    context = new ArgumentResolverContext(aliasPrefix, guild, jda);
+                } else {
+                    context = new ArgumentResolverContext(aliasPrefix, jda);
+                }
+                User user = ArgumentResolvers.USER_MENTION.resolve(context);
+                if (user.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
+                    executeCommand(content[1], content, 2, member, channel, author, message, jda, guild);
+                }
+            } catch (Exception e) {
+                // not a mention
+                if (aliasPrefix.startsWith(prefix)) {
+                    String name = aliasPrefix.replace(prefix, "");
+                    if (!name.isEmpty()) {
+                        executeCommand(name, content, 1, member, channel, author, message, jda, guild);
+                    }
+                }
+            }
+        } else {
+            if (aliasPrefix.startsWith(prefix)) {
+                String name = aliasPrefix.replace(prefix, "");
+                if (!name.isEmpty()) {
+                    executeCommand(name, content, 1, member, channel, author, message, jda, guild);
+                }
+            }
+        }
+    }
+
+    private void executeCommand(String name, String[] content, int argsFrom,
+                                Member member, MessageChannel callbackChannel, User author, Message msg, JDA jda, Guild guild) {
         Optional<RegisteredCommand> commandOptional = getCommand(name);
-        Member member = event.getMember();
-        TextChannel callbackChannel = event.getChannel();
-        User author = event.getAuthor();
         if (commandOptional.isPresent()) {
             RegisteredCommand command = commandOptional.get();
-            if (!command.hasPermission(member, name)) {
-                callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
-                        .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                return;
-            }
-            TextChannel cec = commandSettings.getCommandExecuteChannel();
-            if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
-                callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
-                        .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
-                        .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                event.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
-                return;
-            }
-            command.execute(
-                    new CommandExecutionContext(event.getMessage(), name, false),
-                    new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), event.getJDA(), event.getGuild()));
+            if (command.isGuildOnly() && msg.isFromGuild()) {
+                PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
+                if (!command.hasPermission(permissionCheck)) {
+                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+                TextChannel cec = commandSettings.getCommandExecuteChannel();
+                if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
+                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                            .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
+                            .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                    msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                    return;
+                }
+                command.execute(
+                        new CommandExecutionContext(msg, name, false),
+                        new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
 
-            if (commandSettings.isLogExecutedCommands()) {
-                logger.info("\"" + event.getAuthor().getAsTag() +
-                        "\" has executed command \"" + event.getMessage().getContentRaw() +
-                        "\" in guild \"" + event.getGuild().getName() + "\" with guild id \"" + event.getGuild().getId() + "\"");
+                if (commandSettings.isLogExecutedCommands()) {
+                    logger.info("\"" + author.getAsTag() +
+                            "\" has executed command \"" + msg.getContentRaw() +
+                            "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                }
+            } else {
+                if (msg.isFromGuild()) {
+                    PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
+                    if (!command.hasPermission(permissionCheck)) {
+                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+
+                    TextChannel cec = commandSettings.getCommandExecuteChannel();
+                    if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
+                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                                .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
+                                .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+
+                    command.execute(
+                            new CommandExecutionContext(msg, name, false),
+                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+
+                    if (commandSettings.isLogExecutedCommands()) {
+                        logger.info("\"" + author.getAsTag() +
+                                "\" has executed command \"" + msg.getContentRaw() +
+                                "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                    }
+                } else {
+                    PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
+                    if (!command.hasPermission(permissionCheck)) {
+                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+
+                    command.execute(
+                            new CommandExecutionContext(msg, name, false),
+                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+
+                    if (commandSettings.isLogExecutedCommands()) {
+                        logger.info("\"" + author.getAsTag() + "\" has executed command \"" + msg.getContentRaw() + "\" in DMs");
+                    }
+                }
             }
         }
     }

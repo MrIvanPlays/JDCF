@@ -3,7 +3,9 @@ package com.mrivanplays.jdcf;
 import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,13 +21,23 @@ public abstract class Command {
 
     private final String name;
     private final Permission[] permissions;
+    private final boolean guildOnly;
 
     public Command(@NotNull String name) {
-        this(name, (Permission[]) null);
+        this(name, true, (Permission[]) null);
+    }
+
+    public Command(@NotNull String name, boolean guildOnly) {
+        this(name, guildOnly, (Permission[]) null);
     }
 
     public Command(@NotNull String name, @Nullable Permission... permissions) {
+        this(name, true, permissions);
+    }
+
+    public Command(@NotNull String name, boolean guildOnly, @Nullable Permission... permissions) {
         this.name = Objects.requireNonNull(name, "name");
+        this.guildOnly = guildOnly;
         this.permissions = permissions;
     }
 
@@ -61,19 +73,38 @@ public abstract class Command {
     /**
      * An overridable method which checks if the member has the required permission to execute the command.
      *
-     * @param member the member you want to check if has permission
-     * @param alias the alias that triggered the command
+     * @param context permission check context
      * @return <code>true</code> if has, <code>false</code> otherwise
      */
-    public boolean hasPermission(@NotNull Member member, @NotNull String alias) {
-        triggerNonNullCheck(member, alias);
-        return permissions == null || member.hasPermission(permissions);
+    public boolean hasPermission(@NotNull PermissionCheckContext context) {
+        if (guildOnly) {
+            if (context.isFromGuild()) {
+                return permissions == null || context.getMember().hasPermission(permissions);
+            } else {
+                return false;
+            }
+        } else {
+            if (context.isFromGuild()) {
+                return permissions == null || context.getMember().hasPermission(permissions);
+            } else {
+                for (Guild guild : context.getUser().getMutualGuilds()) {
+                    if (guild.getMembers().stream().anyMatch(u -> u.getId().equalsIgnoreCase(context.getJda().getSelfUser().getId()))) {
+                        Member member = guild.getMember(context.getUser());
+                        return permissions == null || member.hasPermission(permissions);
+                    }
+                }
+            }
+        }
+        return permissions == null;
     }
 
-    protected void triggerNonNullCheck(Member member, String alias) {
-        // helper method for non-null checking
-        Objects.requireNonNull(member, "Cannot check permissions of a member which is null.");
-        Objects.requireNonNull(alias, "alias");
+    /**
+     * Returns whenever this command should be executed only in guilds.
+     *
+     * @return <code>true</code> if guild only, <code>false</code> otherwise
+     */
+    public boolean isGuildOnly() {
+        return guildOnly;
     }
 
     /**
@@ -100,6 +131,7 @@ public abstract class Command {
         private String description;
         private String[] aliases;
         private Permission[] permissions;
+        private boolean guildOnly = true;
 
         /**
          * Sets the name of the command. Shouldn't be null.
@@ -157,6 +189,17 @@ public abstract class Command {
         }
 
         /**
+         * Sets if the command should be guild only or not
+         *
+         * @param guildOnly value
+         * @return this instance for chaining
+         */
+        public Builder guildOnly(boolean guildOnly) {
+            this.guildOnly = guildOnly;
+            return this;
+        }
+
+        /**
          * Sets the command executor. Shouldn't be null
          *
          * @param executor executor
@@ -176,7 +219,7 @@ public abstract class Command {
         public RegisteredCommand build() {
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(executor, "executor");
-            return new RegisteredCommand(new Command(name, permissions) {
+            return new RegisteredCommand(new Command(name, guildOnly, permissions) {
 
                 @Override
                 public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {

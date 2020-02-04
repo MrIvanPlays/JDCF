@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a data about a specific argument
@@ -14,7 +15,11 @@ public final class ArgumentResolverContext {
     private final Guild guild;
     private final JDA jda;
 
-    public ArgumentResolverContext(@NotNull String argument, @NotNull Guild guild, @NotNull JDA jda) {
+    public ArgumentResolverContext(@NotNull String argument, @NotNull JDA jda) {
+        this(argument, null, jda);
+    }
+
+    public ArgumentResolverContext(@NotNull String argument, @Nullable Guild guild, @NotNull JDA jda) {
         this.argument = argument;
         this.guild = guild;
         this.jda = jda;
@@ -31,11 +36,11 @@ public final class ArgumentResolverContext {
     }
 
     /**
-     * Returns the {@link Guild} where the argument was send.
+     * Returns the {@link Guild} where the argument was send if it was sent into a guild text channel.
      *
      * @return guild
      */
-    @NotNull
+    @Nullable
     public Guild getGuild() {
         return guild;
     }

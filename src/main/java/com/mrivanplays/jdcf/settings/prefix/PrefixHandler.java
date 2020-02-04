@@ -3,6 +3,11 @@ package com.mrivanplays.jdcf.settings.prefix;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,5 +118,22 @@ public interface PrefixHandler {
     default String getPrefix(long guildId) {
         String guildPrefix = getGuildPrefix(guildId);
         return guildPrefix == null ? getDefaultPrefix() : guildPrefix;
+    }
+
+    /**
+     * Gets the prefix of which the bot is going to listen for commands in DMs of this user.
+     *
+     * @param selfUser bot user instance
+     * @param user the user who wants to execute commands in DMs
+     * @return prefix of guild or the default one if not present
+     */
+    @NotNull
+    default String getPrefix(User selfUser, User user) {
+        for (Guild guild : user.getMutualGuilds()) {
+            if (guild.getMembers().stream().anyMatch(u -> u.getId().equalsIgnoreCase(selfUser.getId()))) {
+                return getPrefix(guild.getIdLong());
+            }
+        }
+        return getDefaultPrefix();
     }
 }

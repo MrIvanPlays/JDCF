@@ -4,10 +4,13 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a generic data about the {@link Command} executed.
@@ -25,25 +28,54 @@ public final class CommandExecutionContext {
     }
 
     /**
-     * Returns the {@link TextChannel} where the command was executed.
+     * Returns the {@link MessageChannel} where the command was executed.
      *
      * @return channel
      */
     @NotNull
-    public TextChannel getChannel() {
-        return message.getTextChannel();
+    public MessageChannel getChannel() {
+        return message.getChannel();
     }
 
     /**
-     * Returns the guild {@link Member}, author of the command.
+     * Returns whenever the command was executed in a guild.
+     *
+     * @return <code>true</code> if executed in guild channel, <code>false</code> otherwise
+     */
+    public boolean wasExecutedInGuild() {
+        return message.isFromGuild();
+    }
+
+    /**
+     * Returns the {@link TextChannel} if the command was executed in a guild.
+     *
+     * @return channel or null
+     */
+    @Nullable
+    public TextChannel getTextChannel() {
+        return wasExecutedInGuild() ? message.getTextChannel() : null;
+    }
+
+    /**
+     * Returns the {@link PrivateChannel} if the command was executed in the specified {@link User author}'s DMs.
+     *
+     * @return channel or null
+     */
+    @Nullable
+    public PrivateChannel getPrivateChannel() {
+        return !wasExecutedInGuild() ? message.getPrivateChannel() : null;
+    }
+
+    /**
+     * Returns the guild {@link Member}, author of the command if the command was executed in guild.
      *
      * <p>Keep in mind this is not the same as {@link #getAuthor()}
      *
      * @return member
      */
-    @NotNull
+    @Nullable
     public Member getMember() {
-        return message.getMember();
+        return wasExecutedInGuild() ? message.getMember() : null;
     }
 
     /**
@@ -79,13 +111,13 @@ public final class CommandExecutionContext {
     }
 
     /**
-     * Returns the {@link Guild} where the {@link #getMember()} have executed the command.
+     * Returns the {@link Guild} where the {@link #getMember()} have executed the command if it was executed in a guild.
      *
      * @return guild
      */
-    @NotNull
+    @Nullable
     public Guild getGuild() {
-        return message.getGuild();
+        return wasExecutedInGuild() ? message.getGuild() : null;
     }
 
     /**

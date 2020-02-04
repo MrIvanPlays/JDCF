@@ -26,7 +26,7 @@ configurations.all {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    provided('net.dv8tion:JDA:4.1.0_95')
+    provided('net.dv8tion:JDA:4.1.1_105')
     provided('com.fasterxml.jackson.core:jackson-databind:2.10.1')
 }
 
@@ -38,7 +38,7 @@ java {
 }
 
 group = 'com.mrivanplays'
-version = '1.0.4-SNAPSHOT'
+version = '1.0.5-SNAPSHOT'
 description = 'Command framework for Java Discord API'
 
 publishing {
@@ -57,8 +57,8 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'JDCF'
-            from components.java
-//            artifact sourcesJar
+//            from components.java
+            artifact sourcesJar
 //            artifact javadocJar
 
             pom {

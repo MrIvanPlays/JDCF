@@ -4,6 +4,7 @@ import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,12 +81,20 @@ public final class RegisteredCommand {
     /**
      * Checks if the specified member has the required permission to execute this command.
      *
-     * @param member the member you want to check if has permission
-     * @param alias the alias that triggered the command
+     * @param context permission check context
      * @return <code>true</code> if has permission, <code>false</code> otherwise
      */
-    public boolean hasPermission(@NotNull Member member, @NotNull String alias) {
-        return command.hasPermission(member, alias);
+    public boolean hasPermission(@NotNull PermissionCheckContext context) {
+        return command.hasPermission(context);
+    }
+
+    /**
+     * Returns whenever this command should be only executed in guild.
+     *
+     * @return <code>true</code> if guild only, <code>false</code> otherwise
+     */
+    public boolean isGuildOnly() {
+        return command.isGuildOnly();
     }
 
     /**

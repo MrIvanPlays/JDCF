@@ -1,5 +1,7 @@
 package com.mrivanplays.jdcf.builtin.help;
 
+import com.mrivanplays.jdcf.CommandExecutionContext;
+import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
@@ -23,17 +25,23 @@ class HelpPaginator {
     private final Supplier<EmbedBuilder> errorEmbed;
     private final Translations translations;
 
-    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, Member commandExecutor, User author, long guildId, String alias) {
+    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, CommandExecutionContext context) {
         this.translations = settings.getTranslations();
         this.errorEmbed = settings.getErrorEmbed();
-        String prefix = settings.getPrefixHandler().getPrefix(guildId);
+        String prefix;
+        if (context.wasExecutedInGuild()) {
+            prefix = settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong());
+        } else {
+            prefix = settings.getPrefixHandler().getPrefix(context.getJda().getSelfUser(), context.getAuthor());
+        }
+        PermissionCheckContext permissionCheck = new PermissionCheckContext(context.getJda(), context.getAuthor(), context.getGuild(), context.getMember(), context.getAlias());
         if (commands.size() == 1) {
             List<RegisteredCommand> page = commands.get(0)
                     .stream()
                     .filter(cmd ->
-                            cmd.getDescription() != null & cmd.getUsage() != null && cmd.hasPermission(commandExecutor, alias))
+                            cmd.getDescription() != null & cmd.getUsage() != null && cmd.hasPermission(permissionCheck))
                     .collect(Collectors.toList());
-            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), author);
+            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
             StringBuilder commandDescription = new StringBuilder();
             for (RegisteredCommand in : page) {
                 commandDescription.append("`")
@@ -50,11 +58,11 @@ class HelpPaginator {
         }
         List<List<RegisteredCommand>> filteredPages = filterPages(commands,
                 settings.getCommandsPerHelpPage(),
-                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && cmd.hasPermission(commandExecutor, alias));
+                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && cmd.hasPermission(permissionCheck));
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < filteredPages.size(); i++) {
             List<RegisteredCommand> page = filteredPages.get(i);
-            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), author);
+            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
             StringBuilder commandDescription = new StringBuilder();
             for (RegisteredCommand in : page) {
                 commandDescription.append("`")
