@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -69,7 +69,7 @@ public class CommandHelp extends Command {
                                     message.addReaction(arrowLeft).queue();
                                 }
                                 message.addReaction(arrowRight).queue();
-                                eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+                                eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
                                     ReactionEmote emote = event.getReactionEmote();
                                     if (event.getMessageIdLong() == message.getIdLong() && (!event.getUser().isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                         message.removeReaction(emote.getEmoji(), event.getUser()).queue();
@@ -89,7 +89,7 @@ public class CommandHelp extends Command {
                             } else {
                                 if (pageNumber != 1) {
                                     message.addReaction(arrowLeft).queue();
-                                    eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+                                    eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
                                         ReactionEmote emote = event.getReactionEmote();
                                         if (event.getMessageIdLong() == message.getIdLong() && (!event.getUser().isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                             message.removeReaction(emote.getEmoji(), event.getUser()).queue();
@@ -112,7 +112,7 @@ public class CommandHelp extends Command {
                 channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
                     if (paginator.hasNext(1)) {
                         message.addReaction(arrowRight).queue();
-                        eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+                        eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
                             ReactionEmote emote = event.getReactionEmote();
                             if (event.getMessageIdLong() == message.getIdLong() && (!event.getUser().isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                                 message.removeReaction(emote.getEmoji(), event.getUser()).queue();
@@ -190,7 +190,7 @@ public class CommandHelp extends Command {
             if (paginator.hasNext(page)) {
                 message.addReaction(arrowRight).queue();
             }
-            eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+            eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (event.getMessageIdLong() == message.getIdLong() && (!event.getUser().isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                     message.removeReaction(emote.getEmoji(), event.getUser()).queue();
@@ -219,7 +219,7 @@ public class CommandHelp extends Command {
             if (paginator.hasNext(page)) {
                 message.addReaction(arrowRight).queue();
             }
-            eventWaiter.waitForEvent(GuildMessageReactionAddEvent.class, event -> {
+            eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
                 ReactionEmote emote = event.getReactionEmote();
                 if (event.getMessageIdLong() == message.getIdLong() && (!event.getUser().isBot() && !event.getUser().getId().equalsIgnoreCase(author.getId()))) {
                     message.removeReaction(emote.getEmoji(), event.getUser()).queue();
