@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageActivity;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -38,6 +39,17 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     @Override
     protected void unsupported() {
         throw new UnsupportedOperationException("Command was executed thru CommandManager#dispatchCommand meaning that this is not supported.");
+    }
+
+    @Nonnull
+    @Override
+    public MessageChannel getChannel() {
+        return channel;
+    }
+
+    @Override
+    public boolean isFromGuild() {
+        return true;
     }
 
     @Nonnull
@@ -129,7 +141,6 @@ public final class CommandDispatcherMessage extends AbstractMessage {
     @Nullable
     @Override
     public MessageActivity getActivity() {
-        unsupported();
         return null;
     }
 
