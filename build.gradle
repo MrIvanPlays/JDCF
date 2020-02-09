@@ -33,7 +33,7 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-//    withJavadocJar()
+    withJavadocJar()
     withSourcesJar()
 }
 
@@ -89,9 +89,9 @@ publishing {
     }
 }
 
-//javadoc {
-//    source = sourceSets.main.allJava
-//    classpath = configurations.compile
-//}
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+}
 
 compileJava.options.encoding = 'UTF-8'
