@@ -61,6 +61,9 @@ public class CommandHelp extends Command {
                 return;
             }
             channel.sendMessage(page).queue(message -> {
+                if (!context.wasExecutedInGuild()) {
+                    return;
+                }
                 if (!message.getEmbeds().isEmpty()) {
                     for (MessageEmbed embed : message.getEmbeds()) {
                         if (embed.getDescription() != null && embed.getDescription().contains(pageName)) {
@@ -110,6 +113,9 @@ public class CommandHelp extends Command {
         }).orElse((failReason, parsed) -> {
             if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
                 channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
+                    if (!context.wasExecutedInGuild()) {
+                        return;
+                    }
                     if (paginator.hasNext(1)) {
                         message.addReaction(arrowRight).queue();
                         eventWaiter.waitForEvent(MessageReactionAddEvent.class, event -> {
