@@ -331,30 +331,36 @@ public final class CommandManager implements EventListener {
         Optional<RegisteredCommand> commandOptional = getCommand(name);
         if (commandOptional.isPresent()) {
             RegisteredCommand command = commandOptional.get();
-            if (command.isGuildOnly() && msg.isFromGuild()) {
-                PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
-                if (!command.hasPermission(permissionCheck)) {
-                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
-                            .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                    msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                    return;
-                }
-                TextChannel cec = commandSettings.getCommandExecuteChannel();
-                if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
-                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
-                            .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
-                            .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                    msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                    return;
-                }
-                command.execute(
-                        new CommandExecutionContext(msg, name, false),
-                        new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+            if (command.isGuildOnly()) {
+                if (msg.isFromGuild()) {
+                    PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
+                    if (!command.hasPermission(permissionCheck)) {
+                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                                .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+                    TextChannel cec = commandSettings.getCommandExecuteChannel();
+                    if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
+                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                                .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
+                                .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
+                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
+                        return;
+                    }
+                    command.execute(
+                            new CommandExecutionContext(msg, name, false),
+                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
 
-                if (commandSettings.isLogExecutedCommands()) {
-                    logger.info("\"" + author.getAsTag() +
-                            "\" has executed command \"" + msg.getContentRaw() +
-                            "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                    if (commandSettings.isLogExecutedCommands()) {
+                        logger.info("\"" + author.getAsTag() +
+                                "\" has executed command \"" + msg.getContentRaw() +
+                                "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                    }
+                } else {
+                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                                    .setDescription(commandSettings.getTranslations().getTranslation("command_guild_only", name)).build())
+                            .queue(m -> m.delete().queueAfter(15, TimeUnit.SECONDS));
                 }
             } else {
                 if (msg.isFromGuild()) {
