@@ -283,9 +283,8 @@ public final class CommandManager implements EventListener {
     }
 
     private void handleMessage(Message message, Guild guild, JDA jda, MessageChannel channel, User author, Member member) {
-        if (author.isBot() || member == null) {
+        if (author.isBot() || message.isWebhookMessage()) {
             // we don't want to handle if the author is bot or the message is a webhook message
-            // (event.getMember() is null if the message is webhook message)
             return;
         }
         String prefix;
