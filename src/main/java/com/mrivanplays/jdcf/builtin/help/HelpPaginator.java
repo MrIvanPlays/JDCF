@@ -9,6 +9,7 @@ import com.mrivanplays.jdcf.util.EmbedUtil;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
@@ -29,12 +30,16 @@ class HelpPaginator {
         this.translations = settings.getTranslations();
         this.errorEmbed = settings.getErrorEmbed();
         String prefix;
+        Guild guild;
         if (context.wasExecutedInGuild()) {
             prefix = settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong());
+            guild = context.getGuild();
         } else {
-            prefix = settings.getPrefixHandler().getPrefix(context.getJda().getSelfUser(), context.getAuthor());
+            prefix = settings.getPrefixHandler().getPrefix(context.getAuthor());
+            guild = context.getAuthor().getMutualGuilds().get(0);
         }
-        PermissionCheckContext permissionCheck = new PermissionCheckContext(context.getJda(), context.getAuthor(), context.getGuild(), context.getMember(), context.getAlias());
+        Member member = guild.getMember(context.getAuthor());
+        PermissionCheckContext permissionCheck = new PermissionCheckContext(context.getJda(), context.getAuthor(), guild, member, context.getAlias());
         if (commands.size() == 1) {
             List<RegisteredCommand> page = commands.get(0)
                     .stream()

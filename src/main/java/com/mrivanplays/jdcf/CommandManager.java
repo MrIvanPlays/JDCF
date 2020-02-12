@@ -291,7 +291,7 @@ public final class CommandManager implements EventListener {
         if (message.isFromGuild()) {
             prefix = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong());
         } else {
-            prefix = commandSettings.getPrefixHandler().getPrefix(jda.getSelfUser(), author);
+            prefix = commandSettings.getPrefixHandler().getPrefix(author);
         }
         String[] content = message.getContentRaw().split(" ");
         String aliasPrefix = content[0];
@@ -389,7 +389,6 @@ public final class CommandManager implements EventListener {
                     if (!command.hasPermission(permissionCheck)) {
                         callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                        msg.delete().queueAfter(15, TimeUnit.SECONDS);
                         return;
                     }
 
