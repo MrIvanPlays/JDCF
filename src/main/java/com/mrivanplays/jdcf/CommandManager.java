@@ -323,6 +323,8 @@ public final class CommandManager implements EventListener {
                     if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
                         callSubscribers(subscriberEvent);
                     }
+                } else {
+                    callSubscribers(subscriberEvent);
                 }
             } catch (Exception e) {
                 // not a mention
@@ -335,6 +337,8 @@ public final class CommandManager implements EventListener {
                     } else {
                         callSubscribers(subscriberEvent);
                     }
+                } else {
+                    callSubscribers(subscriberEvent);
                 }
             }
         } else {
@@ -347,6 +351,8 @@ public final class CommandManager implements EventListener {
                 } else {
                     callSubscribers(subscriberEvent);
                 }
+            } else {
+                callSubscribers(subscriberEvent);
             }
         }
     }
