@@ -332,6 +332,8 @@ public final class CommandManager implements EventListener {
                         if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
                             callSubscribers(subscriberEvent);
                         }
+                    } else {
+                        callSubscribers(subscriberEvent);
                     }
                 }
             }
@@ -342,6 +344,8 @@ public final class CommandManager implements EventListener {
                     if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
                         callSubscribers(subscriberEvent);
                     }
+                } else {
+                    callSubscribers(subscriberEvent);
                 }
             }
         }
