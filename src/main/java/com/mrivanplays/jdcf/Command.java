@@ -78,24 +78,17 @@ public abstract class Command {
      */
     public boolean hasPermission(@NotNull PermissionCheckContext context) {
         if (guildOnly) {
-            if (context.isFromGuild()) {
-                return permissions == null || context.getMember().hasPermission(permissions);
-            } else {
-                return false;
-            }
+            return permissions == null || context.getMember().hasPermission(permissions);
         } else {
             if (context.isFromGuild()) {
                 return permissions == null || context.getMember().hasPermission(permissions);
             } else {
-                for (Guild guild : context.getUser().getMutualGuilds()) {
-                    if (guild.getMembers().stream().anyMatch(u -> u.getId().equalsIgnoreCase(context.getJda().getSelfUser().getId()))) {
-                        Member member = guild.getMember(context.getUser());
-                        return permissions == null || member.hasPermission(permissions);
-                    }
-                }
+                User user = context.getUser();
+                Guild guild = user.getMutualGuilds().get(0);
+                Member member = guild.getMember(user);
+                return permissions == null || member.hasPermission(permissions);
             }
         }
-        return permissions == null;
     }
 
     /**

@@ -55,6 +55,7 @@ public final class CommandManager implements EventListener {
     private List<RegisteredCommand> commands;
     private CommandSettings commandSettings;
     private Logger logger;
+    private List<Consumer<MessageEventSubscriber>> eventSubscribers;
 
     public CommandManager(@NotNull JDA jda) {
         this(jda, CommandSettings.defaultSettings());
@@ -78,6 +79,7 @@ public final class CommandManager implements EventListener {
 
     private void init(CommandSettings settings, Consumer<EventWaiter> waiterRegistry) {
         commands = new ArrayList<>();
+        eventSubscribers = new ArrayList<>();
         logger = LoggerFactory.getLogger(CommandManager.class);
         setSettings(settings);
         getSettings().getExecutorService().schedule(() -> {
@@ -161,6 +163,18 @@ public final class CommandManager implements EventListener {
         Objects.requireNonNull(registeredCommand, "registeredCommand");
         if (!commands.contains(registeredCommand)) {
             commands.add(registeredCommand);
+        }
+    }
+
+    /**
+     * Adds a {@link MessageEventSubscriber}, called if no commands occur while handling events.
+     *
+     * @param subscriber subscriber
+     */
+    public void addMessageEventSubscription(@NotNull Consumer<MessageEventSubscriber> subscriber) {
+        Objects.requireNonNull(subscriber, "subscriber");
+        if (eventSubscribers.stream().noneMatch(sub -> sub.hashCode() == subscriber.hashCode())) { // advanced contains for a list. neat
+            eventSubscribers.add(subscriber);
         }
     }
 
@@ -295,6 +309,7 @@ public final class CommandManager implements EventListener {
         }
         String[] content = message.getContentRaw().split(" ");
         String aliasPrefix = content[0];
+        MessageEventSubscriber subscriberEvent = new MessageEventSubscriber(message);
         if (commandSettings.isEnableMentionInsteadPrefix()) {
             try {
                 ArgumentResolverContext context;
@@ -305,14 +320,18 @@ public final class CommandManager implements EventListener {
                 }
                 User user = ArgumentResolvers.USER_MENTION.resolve(context);
                 if (user.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
-                    executeCommand(content[1], content, 2, member, channel, author, message, jda, guild);
+                    if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
+                        callSubscribers(subscriberEvent);
+                    }
                 }
             } catch (Exception e) {
                 // not a mention
                 if (aliasPrefix.startsWith(prefix)) {
                     String name = aliasPrefix.replace(prefix, "");
                     if (!name.isEmpty()) {
-                        executeCommand(name, content, 1, member, channel, author, message, jda, guild);
+                        if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
+                            callSubscribers(subscriberEvent);
+                        }
                     }
                 }
             }
@@ -320,13 +339,15 @@ public final class CommandManager implements EventListener {
             if (aliasPrefix.startsWith(prefix)) {
                 String name = aliasPrefix.replace(prefix, "");
                 if (!name.isEmpty()) {
-                    executeCommand(name, content, 1, member, channel, author, message, jda, guild);
+                    if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
+                        callSubscribers(subscriberEvent);
+                    }
                 }
             }
         }
     }
 
-    private void executeCommand(String name, String[] content, int argsFrom,
+    private boolean executeCommand(String name, String[] content, int argsFrom,
                                 Member member, MessageChannel callbackChannel, User author, Message msg, JDA jda, Guild guild) {
         Optional<RegisteredCommand> commandOptional = getCommand(name);
         if (commandOptional.isPresent()) {
@@ -338,7 +359,7 @@ public final class CommandManager implements EventListener {
                         callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                        return;
+                        return false;
                     }
                     TextChannel cec = commandSettings.getCommandExecuteChannel();
                     if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
@@ -346,21 +367,24 @@ public final class CommandManager implements EventListener {
                                 .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
                                 .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                        return;
+                        return false;
                     }
-                    command.execute(
-                            new CommandExecutionContext(msg, name, false),
-                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
-
-                    if (commandSettings.isLogExecutedCommands()) {
-                        logger.info("\"" + author.getAsTag() +
-                                "\" has executed command \"" + msg.getContentRaw() +
-                                "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                    try {
+                        return command.execute(
+                                new CommandExecutionContext(msg, name, false),
+                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } finally {
+                        if (commandSettings.isLogExecutedCommands()) {
+                            logger.info("\"" + author.getAsTag() +
+                                    "\" has executed command \"" + msg.getContentRaw() +
+                                    "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                        }
                     }
                 } else {
                     callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
-                                    .setDescription(commandSettings.getTranslations().getTranslation("command_guild_only", name)).build())
+                            .setDescription(commandSettings.getTranslations().getTranslation("command_guild_only", name)).build())
                             .queue(m -> m.delete().queueAfter(15, TimeUnit.SECONDS));
+                    return false;
                 }
             } else {
                 if (msg.isFromGuild()) {
@@ -369,7 +393,7 @@ public final class CommandManager implements EventListener {
                         callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                        return;
+                        return false;
                     }
 
                     TextChannel cec = commandSettings.getCommandExecuteChannel();
@@ -378,35 +402,45 @@ public final class CommandManager implements EventListener {
                                 .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
                                 .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
-                        return;
+                        return false;
                     }
-
-                    command.execute(
-                            new CommandExecutionContext(msg, name, false),
-                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
-
-                    if (commandSettings.isLogExecutedCommands()) {
-                        logger.info("\"" + author.getAsTag() +
-                                "\" has executed command \"" + msg.getContentRaw() +
-                                "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                    try {
+                        return command.execute(
+                                new CommandExecutionContext(msg, name, false),
+                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } finally {
+                        if (commandSettings.isLogExecutedCommands()) {
+                            logger.info("\"" + author.getAsTag() +
+                                    "\" has executed command \"" + msg.getContentRaw() +
+                                    "\" in guild \"" + guild.getName() + "\" with guild id \"" + guild.getId() + "\"");
+                        }
                     }
                 } else {
                     PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
                     if (!command.hasPermission(permissionCheck)) {
                         callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
-                        return;
+                        return false;
                     }
-
-                    command.execute(
-                            new CommandExecutionContext(msg, name, false),
-                            new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
-
-                    if (commandSettings.isLogExecutedCommands()) {
-                        logger.info("\"" + author.getAsTag() + "\" has executed command \"" + msg.getContentRaw() + "\" in DMs");
+                    try {
+                        return command.execute(
+                                new CommandExecutionContext(msg, name, false),
+                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } finally {
+                        if (commandSettings.isLogExecutedCommands()) {
+                            logger.info("\"" + author.getAsTag() + "\" has executed command \"" + msg.getContentRaw() + "\" in DMs");
+                        }
                     }
                 }
             }
+        } else {
+            return false;
+        }
+    }
+
+    private void callSubscribers(MessageEventSubscriber event) {
+        for (Consumer<MessageEventSubscriber> subscriber : eventSubscribers) {
+            subscriber.accept(event);
         }
     }
 }
