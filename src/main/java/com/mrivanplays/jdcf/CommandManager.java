@@ -173,7 +173,7 @@ public final class CommandManager implements EventListener {
      */
     public void addMessageEventSubscription(@NotNull Consumer<MessageEventSubscriber> subscriber) {
         Objects.requireNonNull(subscriber, "subscriber");
-        if (eventSubscribers.stream().noneMatch(sub -> sub.hashCode() == subscriber.hashCode())) { // advanced contains for a list. neat
+        if (!eventSubscribers.contains(subscriber)) {
             eventSubscribers.add(subscriber);
         }
     }
