@@ -90,7 +90,9 @@ class HelpPaginator {
         List<List<RegisteredCommand>> filtered = unfiltered.stream()
                 .map(list ->
                         list.stream().filter(filter).collect(Collectors.toList())
-                ).collect(Collectors.toList());
+                )
+                .filter(list -> !list.isEmpty())
+                .collect(Collectors.toList());
         List<List<RegisteredCommand>> joined = new ArrayList<>();
         for (int i = 0; i < filtered.size(); i++) {
             List<RegisteredCommand> page = filtered.get(i);
@@ -107,7 +109,7 @@ class HelpPaginator {
                     }
 
                     for (int i1 = 0; i1 < commandsToGet; i1++) {
-                        if (filtered.get(next).size() <= i1) {
+                        if (filtered.get(next).size() == i1) {
                             continue;
                         }
                         RegisteredCommand command = filtered.get(next).remove(i1);
