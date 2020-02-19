@@ -107,6 +107,9 @@ class HelpPaginator {
                     }
 
                     for (int i1 = 0; i1 < commandsToGet; i1++) {
+                        if (filtered.get(next).size() <= i1) {
+                            continue;
+                        }
                         RegisteredCommand command = filtered.get(next).remove(i1);
                         page.add(command);
                     }
