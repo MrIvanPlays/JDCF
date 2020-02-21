@@ -38,7 +38,7 @@ class HelpPaginator {
         }
         Member member = guild.getMember(context.getAuthor());
         PermissionCheckContext permissionCheck = new PermissionCheckContext(context.getJda(), context.getAuthor(), guild, member, context.getAlias());
-        if (commands.size() == settings.getCommandsPerHelpPage()) {
+        if (commands.size() <= settings.getCommandsPerHelpPage()) {
             List<RegisteredCommand> page = commands
                     .stream()
                     .filter(cmd ->
