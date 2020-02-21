@@ -92,8 +92,7 @@ public final class CommandManager implements EventListener {
                 if (!getCommand("help").isPresent()) {
                     EventWaiter eventWaiter = new EventWaiter(getSettings().getExecutorService());
                     waiterRegistry.accept(eventWaiter);
-                    List<List<RegisteredCommand>> paginatedCommands = Utils.getPages(commands, getSettings().getCommandsPerHelpPage());
-                    registerCommand(new CommandHelp(this, eventWaiter, paginatedCommands));
+                    registerCommand(new CommandHelp(this, eventWaiter));
                 }
             }
         }, 1, TimeUnit.SECONDS);
@@ -383,6 +382,10 @@ public final class CommandManager implements EventListener {
                         return command.execute(
                                 new CommandExecutionContext(msg, name, false),
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } catch (Throwable e) {
+                        callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
+                        e.printStackTrace();
+                        return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
                             logger.info("\"" + author.getAsTag() +
@@ -418,6 +421,10 @@ public final class CommandManager implements EventListener {
                         return command.execute(
                                 new CommandExecutionContext(msg, name, false),
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } catch (Throwable e) {
+                        callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
+                        e.printStackTrace();
+                        return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
                             logger.info("\"" + author.getAsTag() +
@@ -436,6 +443,10 @@ public final class CommandManager implements EventListener {
                         return command.execute(
                                 new CommandExecutionContext(msg, name, false),
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                    } catch (Throwable e) {
+                        callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
+                        e.printStackTrace();
+                        return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
                             logger.info("\"" + author.getAsTag() + "\" has executed command \"" + msg.getContentRaw() + "\" in DMs");

@@ -20,16 +20,30 @@ import java.util.ResourceBundle;
  */
 public class Translations {
 
-    private ResourceBundle resourceBundle;
+    private TranslationFile translationFile;
     private String language;
 
-    private Translations(ResourceBundle resourceBundle, String language) {
-        this.resourceBundle = resourceBundle;
+    private Translations(TranslationFile translationFile, String language) {
+        this.translationFile = translationFile;
         this.language = language;
     }
 
     /**
-     * Retrieves a new {@link PropertyResourceBundle} {@link Translations}
+     * Retrieves a new {@link Translations} instance with the specified {@link TranslationFile}
+     *
+     * @param translationFile translation file
+     * @param language language of the translations
+     * @return translations
+     */
+    @NotNull
+    public static Translations get(@NotNull TranslationFile translationFile, @NotNull String language) {
+        Objects.requireNonNull(translationFile, "translationFile");
+        Objects.requireNonNull(language, "language");
+        return new Translations(translationFile, language);
+    }
+
+    /**
+     * Retrieves a new {@link Translations} which are bound to the ".properties" file type.
      *
      * @param in a ".properties" resource's input stream
      * @param language the language of these translations
@@ -40,11 +54,11 @@ public class Translations {
     public static Translations get(@NotNull InputStream in, @NotNull String language) throws IOException {
         Objects.requireNonNull(in, "in");
         Objects.requireNonNull(language, "language");
-        return new Translations(new PropertyResourceBundle(in), language);
+        return new Translations(new PropertyTranslationFile(in), language);
     }
 
     /**
-     * Retrieves a new {@link PropertyResourceBundle} {@link Translations}
+     * Retrieves a new {@link Translations} which are bound to the ".properties" file type.
      *
      * @param reader a ".properties" resource's reader
      * @param language the language of these translations
@@ -55,7 +69,7 @@ public class Translations {
     public static Translations get(@NotNull Reader reader, @NotNull String language) throws IOException {
         Objects.requireNonNull(reader, "reader");
         Objects.requireNonNull(language, "language");
-        return new Translations(new PropertyResourceBundle(reader), language);
+        return new Translations(new PropertyTranslationFile(reader), language);
     }
 
     /**
@@ -68,8 +82,8 @@ public class Translations {
     @NotNull
     public String getTranslation(@NotNull String key, @Nullable Object... args) {
         Objects.requireNonNull(key, "key");
-        String translation = "<translation '" + key + "' missing>";
-        String bundle = resourceBundle.getString(key);
+        String translation = String.format("Translation [%s][%s] does not exist", language, key);
+        String bundle = translationFile.getString(key);
         if (!bundle.isEmpty()) {
             translation = bundle;
         }
@@ -83,12 +97,17 @@ public class Translations {
      */
     @NotNull
     public Collection<String> getKeys() {
-        Collection<String> mutable = new ArrayList<>();
-        Enumeration<String> keyEnumeration = resourceBundle.getKeys();
-        while (keyEnumeration.hasMoreElements()) {
-            mutable.add(keyEnumeration.nextElement());
-        }
-        return Collections.unmodifiableCollection(mutable);
+        return translationFile.getKeys();
+    }
+
+    /**
+     * Returns the file type, where the translations are stored.
+     *
+     * @return file type
+     */
+    @NotNull
+    public String getTranslationFileType() {
+        return translationFile.getFileType();
     }
 
     /**

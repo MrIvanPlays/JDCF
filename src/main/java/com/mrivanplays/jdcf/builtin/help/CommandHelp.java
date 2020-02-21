@@ -33,13 +33,11 @@ public class CommandHelp extends Command {
     private final String arrowRight = "\u27A1";
     private final String arrowLeft = "\u2B05";
     private final Map<Long, Integer> currentPageMap = new HashMap<>();
-    private List<List<RegisteredCommand>> paginatedCommands;
 
-    public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter, List<List<RegisteredCommand>> paginatedCommands) {
+    public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter) {
         super("help", false);
         this.commandManager = commandManager;
         this.eventWaiter = eventWaiter;
-        this.paginatedCommands = paginatedCommands;
     }
 
     @Override
@@ -52,7 +50,7 @@ public class CommandHelp extends Command {
         String pageName = translations.getTranslation("help_page_specify").split(" ")[0];
         User author = context.getAuthor();
         MessageChannel channel = context.getChannel();
-        HelpPaginator paginator = new HelpPaginator(paginatedCommands, settings, context);
+        HelpPaginator paginator = new HelpPaginator(commandManager.getRegisteredCommands(), settings, context);
         args.nextInt().ifPresent(pageNumber -> {
             MessageEmbed page = paginator.getPage(pageNumber).build();
             if (page.getTitle().equalsIgnoreCase(settings.getErrorEmbed().get().build().getTitle())) {

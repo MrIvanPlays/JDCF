@@ -6,17 +6,15 @@ import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.EmbedUtil;
+import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,7 @@ class HelpPaginator {
     private final Supplier<EmbedBuilder> errorEmbed;
     private final Translations translations;
 
-    public HelpPaginator(List<List<RegisteredCommand>> commands, CommandSettings settings, CommandExecutionContext context) {
+    public HelpPaginator(List<RegisteredCommand> commands, CommandSettings settings, CommandExecutionContext context) {
         this.translations = settings.getTranslations();
         this.errorEmbed = settings.getErrorEmbed();
         String prefix;
@@ -40,8 +38,8 @@ class HelpPaginator {
         }
         Member member = guild.getMember(context.getAuthor());
         PermissionCheckContext permissionCheck = new PermissionCheckContext(context.getJda(), context.getAuthor(), guild, member, context.getAlias());
-        if (commands.size() == 1) {
-            List<RegisteredCommand> page = commands.get(0)
+        if (commands.size() == settings.getCommandsPerHelpPage()) {
+            List<RegisteredCommand> page = commands
                     .stream()
                     .filter(cmd ->
                             cmd.getDescription() != null & cmd.getUsage() != null && cmd.hasPermission(permissionCheck))
@@ -61,9 +59,14 @@ class HelpPaginator {
                             + "\n" + "\n" + commandDescription.toString()));
             return;
         }
-        List<List<RegisteredCommand>> filteredPages = filterPages(commands,
-                settings.getCommandsPerHelpPage(),
-                cmd -> cmd.getDescription() != null && cmd.getUsage() != null && cmd.hasPermission(permissionCheck));
+        List<List<RegisteredCommand>> filteredPages =
+                Utils.getPages(
+                        commands.stream()
+                                .filter(cmd ->
+                                        cmd.getDescription() != null && cmd.getUsage() != null && cmd.hasPermission(permissionCheck))
+                                .collect(Collectors.toList()),
+                        settings.getCommandsPerHelpPage()
+                );
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < filteredPages.size(); i++) {
             List<RegisteredCommand> page = filteredPages.get(i);
@@ -83,43 +86,6 @@ class HelpPaginator {
             ));
         }
         this.pages = pages;
-    }
-
-    private List<List<RegisteredCommand>> filterPages(List<List<RegisteredCommand>> unfiltered, int pageSize,
-                                                      Predicate<RegisteredCommand> filter) {
-        List<List<RegisteredCommand>> filtered = unfiltered.stream()
-                .map(list ->
-                        list.stream().filter(filter).collect(Collectors.toList())
-                )
-                .filter(list -> !list.isEmpty())
-                .collect(Collectors.toList());
-        List<List<RegisteredCommand>> joined = new ArrayList<>();
-        for (int i = 0; i < filtered.size(); i++) {
-            List<RegisteredCommand> page = filtered.get(i);
-            if (page.size() != pageSize) {
-                int next = i + 1;
-                if (next < filtered.size()) {
-                    List<RegisteredCommand> nextPage = filtered.get(next);
-                    int commandsToGet = (pageSize - page.size());
-                    if (nextPage.size() < commandsToGet) {
-                        page.addAll(nextPage);
-                        joined.add(page);
-                        i++;
-                        continue;
-                    }
-
-                    for (int i1 = 0; i1 < commandsToGet; i1++) {
-                        if (filtered.get(next).size() == i1) {
-                            continue;
-                        }
-                        RegisteredCommand command = filtered.get(next).remove(i1);
-                        page.add(command);
-                    }
-                }
-            }
-            joined.add(page);
-        }
-        return joined;
     }
 
     EmbedBuilder getPage(int page) {
