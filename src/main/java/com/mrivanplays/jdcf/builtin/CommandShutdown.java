@@ -4,9 +4,10 @@ import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.args.CommandArguments;
+import com.mrivanplays.jdcf.data.CommandAliases;
+import com.mrivanplays.jdcf.data.MarkGuildOnly;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +20,8 @@ import java.util.Objects;
  * into {@link com.mrivanplays.jdcf.settings.CommandSettings}
  */
 // no data annotations present as this shouldn't be showed in help command
+@CommandAliases("shutdown")
+@MarkGuildOnly
 public class CommandShutdown extends Command {
 
     private String botOwnerId;
@@ -29,7 +32,6 @@ public class CommandShutdown extends Command {
      * @param botOwnerId the discord user id, owner of this bot (the only one who can execute this command)
      */
     public CommandShutdown(@NotNull String botOwnerId) {
-        super("shutdown", true);
         this.botOwnerId = Objects.requireNonNull(botOwnerId, "botOwnerId");
     }
 

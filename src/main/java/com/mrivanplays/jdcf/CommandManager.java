@@ -8,6 +8,7 @@ import com.mrivanplays.jdcf.builtin.help.CommandHelp;
 import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
+import com.mrivanplays.jdcf.data.MarkGuildOnly;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.util.CommandDispatcherMessage;
 import com.mrivanplays.jdcf.util.EmbedUtil;
@@ -111,6 +112,7 @@ public final class CommandManager implements EventListener {
         String[] aliases = null;
         String description = null;
         String usage = null;
+        boolean guildOnly;
         Class<? extends Command> commandClass = command.getClass();
         CommandAliases annoAliases = commandClass.getAnnotation(CommandAliases.class);
         if (annoAliases != null) {
@@ -124,7 +126,13 @@ public final class CommandManager implements EventListener {
         if (annoUsage != null) {
             usage = annoUsage.value();
         }
-        registerCommand(new RegisteredCommand(command, usage, description, aliases));
+        MarkGuildOnly guildOnlyMark = commandClass.getAnnotation(MarkGuildOnly.class);
+        if (guildOnlyMark != null) {
+            guildOnly = true;
+        } else {
+            guildOnly = command.isGuildOnly();
+        }
+        registerCommand(new RegisteredCommand(command, usage, description, aliases, guildOnly));
     }
 
     /**
@@ -215,7 +223,9 @@ public final class CommandManager implements EventListener {
     public Optional<RegisteredCommand> getCommand(@NotNull String alias) {
         Objects.requireNonNull(alias, "alias");
         Utils.checkState(alias.length() != 0, "empty alias");
-        Optional<RegisteredCommand> nameSearch = commands.stream().filter(command -> command.getName().equalsIgnoreCase(alias)).findFirst();
+        Optional<RegisteredCommand> nameSearch = commands.stream()
+                .filter(command -> command.getDirectCommandName() != null && command.getDirectCommandName().equalsIgnoreCase(alias))
+                .findFirst();
         if (nameSearch.isPresent()) {
             return nameSearch;
         } else {
@@ -357,7 +367,7 @@ public final class CommandManager implements EventListener {
     }
 
     private boolean executeCommand(String name, String[] content, int argsFrom,
-                                Member member, MessageChannel callbackChannel, User author, Message msg, JDA jda, Guild guild) {
+                                   Member member, MessageChannel callbackChannel, User author, Message msg, JDA jda, Guild guild) {
         Optional<RegisteredCommand> commandOptional = getCommand(name);
         if (commandOptional.isPresent()) {
             RegisteredCommand command = commandOptional.get();

@@ -3,9 +3,6 @@ package com.mrivanplays.jdcf;
 import com.mrivanplays.jdcf.args.CommandArguments;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,18 +20,44 @@ public abstract class Command {
     private final Permission[] permissions;
     private final boolean guildOnly;
 
+    public Command() {
+        name = null;
+        permissions = null;
+        guildOnly = false;
+    }
+
+    /**
+     * @deprecated name specification should be done by {@link com.mrivanplays.jdcf.data.CommandAliases}
+     */
+    @Deprecated
     public Command(@NotNull String name) {
         this(name, true, (Permission[]) null);
     }
 
+    /**
+     * @deprecated name specification should be done by {@link com.mrivanplays.jdcf.data.CommandAliases} and guild only
+     * should be marked with {@link com.mrivanplays.jdcf.data.MarkGuildOnly}
+     */
+    @Deprecated
     public Command(@NotNull String name, boolean guildOnly) {
         this(name, guildOnly, (Permission[]) null);
     }
 
+    /**
+     * @deprecated name specification should be done by {@link com.mrivanplays.jdcf.data.CommandAliases} and permission
+     * checks by {@link #hasPermission(PermissionCheckContext)}
+     */
+    @Deprecated
     public Command(@NotNull String name, @Nullable Permission... permissions) {
         this(name, true, permissions);
     }
 
+    /**
+     * @deprecated name specification should be done by {@link com.mrivanplays.jdcf.data.CommandAliases}, guild only
+     * should be marked with {@link com.mrivanplays.jdcf.data.MarkGuildOnly}, permission checks by {@link
+     * #hasPermission(PermissionCheckContext)}
+     */
+    @Deprecated
     public Command(@NotNull String name, boolean guildOnly, @Nullable Permission... permissions) {
         this.name = Objects.requireNonNull(name, "name");
         this.guildOnly = guildOnly;
@@ -45,7 +68,9 @@ public abstract class Command {
      * Creates a new command builder.
      *
      * @return builder
+     * @deprecated builder shouldn't be used
      */
+    @Deprecated
     public static Command.Builder builder() {
         return new Command.Builder();
     }
@@ -54,8 +79,10 @@ public abstract class Command {
      * Returns the name of the command.
      *
      * @return name
+     * @deprecated Use {@link com.mrivanplays.jdcf.data.CommandAliases} to specify the command name.
      */
-    @NotNull
+    @Nullable
+    @Deprecated
     public String getName() {
         return name;
     }
@@ -64,8 +91,11 @@ public abstract class Command {
      * Returns the {@link Permission}s required to the author of the command for the command to be executed.
      *
      * @return permission(s)
+     * @deprecated JDCF doesn't care anymore about the permissions. Use {@link #hasPermission(PermissionCheckContext)}
+     * to check for permissions.
      */
     @Nullable
+    @Deprecated
     public Permission[] getPermissions() {
         return permissions;
     }
@@ -77,25 +107,17 @@ public abstract class Command {
      * @return <code>true</code> if has, <code>false</code> otherwise
      */
     public boolean hasPermission(@NotNull PermissionCheckContext context) {
-        if (guildOnly) {
-            return permissions == null || context.getMember().hasPermission(permissions);
-        } else {
-            if (context.isFromGuild()) {
-                return permissions == null || context.getMember().hasPermission(permissions);
-            } else {
-                User user = context.getUser();
-                Guild guild = user.getMutualGuilds().get(0);
-                Member member = guild.getMember(user);
-                return permissions == null || member.hasPermission(permissions);
-            }
-        }
+        return true;
     }
 
     /**
      * Returns whenever this command should be executed only in guilds.
      *
      * @return <code>true</code> if guild only, <code>false</code> otherwise
+     * @deprecated JDCF doesn't store this parameter inside the command class. Use {@link
+     * RegisteredCommand#isGuildOnly()}
      */
+    @Deprecated
     public boolean isGuildOnly() {
         return guildOnly;
     }
@@ -115,7 +137,10 @@ public abstract class Command {
     /**
      * Represents a "all-in-one" command builder. It removes the usage of annotations and other classes except that one
      * and the {@link CommandManager}
+     *
+     * @deprecated isn't a reliable command creation.
      */
+    @Deprecated
     public static final class Builder {
 
         private BiFunction<CommandExecutionContext, CommandArguments, Boolean> executor;

@@ -16,8 +16,7 @@ import java.lang.annotation.Target;
  *
  * <pre><code>
  *{@literal @CommandDescription("This command does all sorts of things!")}
- * public class MyCommand extends Command
- * {
+ * public class MyCommand extends Command {
  *     // other code
  * }</code></pre>
  *

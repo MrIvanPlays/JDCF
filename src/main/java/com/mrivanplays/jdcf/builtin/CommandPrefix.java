@@ -5,8 +5,10 @@ import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.CommandManager;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.args.FailReason;
+import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
+import com.mrivanplays.jdcf.data.MarkGuildOnly;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.EmbedUtil;
@@ -19,12 +21,13 @@ import java.util.concurrent.TimeUnit;
 
 @CommandDescription("Performs an action for the bot's command prefix, depending on what arguments are being specified.")
 @CommandUsage("prefix (set [new prefix])")
+@CommandAliases("prefix")
+@MarkGuildOnly
 public class CommandPrefix extends Command {
 
     private final CommandManager commandManager;
 
     public CommandPrefix(CommandManager commandManager) {
-        super("prefix", true);
         this.commandManager = commandManager;
     }
 

@@ -34,7 +34,7 @@ public final class ArgumentOptional<T> {
 
     private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason, @Nullable String argument) {
         this.value = value;
-        this.failReason = failReason;
+        this.failReason = Objects.requireNonNull(failReason, "failReason");
         this.argument = argument;
     }
 
@@ -84,6 +84,26 @@ public final class ArgumentOptional<T> {
      */
     public boolean isPresent() {
         return value != null;
+    }
+
+    /**
+     * Returns the raw argument
+     *
+     * @return raw argument or null if not present
+     */
+    @Nullable
+    public String getRawArgument() {
+        return argument;
+    }
+
+    /**
+     * Returns the {@link FailReason} of why this argument optional may fail.
+     *
+     * @return fail reason
+     */
+    @NotNull
+    public FailReason getFailReason() {
+        return failReason;
     }
 
     /**

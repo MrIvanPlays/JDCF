@@ -3,9 +3,11 @@ package com.mrivanplays.jdcf.builtin.help;
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.CommandManager;
+import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.args.FailReason;
+import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.EmbedUtil;
@@ -22,10 +24,10 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@CommandAliases("help")
 public class CommandHelp extends Command {
 
     private final CommandManager commandManager;
@@ -35,7 +37,6 @@ public class CommandHelp extends Command {
     private final Map<Long, Integer> currentPageMap = new HashMap<>();
 
     public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter) {
-        super("help", false);
         this.commandManager = commandManager;
         this.eventWaiter = eventWaiter;
     }
@@ -143,7 +144,10 @@ public class CommandHelp extends Command {
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
                 }
-                if (command.getPermissions() != null && !context.getMember().hasPermission(command.getPermissions())) {
+                PermissionCheckContext permissionCheck = new PermissionCheckContext(
+                        context.getJda(), context.getAuthor(), context.getGuild(), context.getMember(), context.getAlias()
+                );
+                if (!command.hasPermission(permissionCheck)) {
                     context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
@@ -164,7 +168,7 @@ public class CommandHelp extends Command {
                 EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
                 helpCommandEmbed.addField(getKeyword("usage"), "`" + prefix + command.getUsage() + "`", true);
                 helpCommandEmbed.addField(getKeyword("description"), command.getDescription(), true);
-                if (command.getAliases() != null) {
+                if (command.getAliases() != null) { // todo: when deprecation removal happens, this check will be redundant
                     helpCommandEmbed.addField(getKeyword("aliases"), String.join(", ", command.getAliases()), true);
                 }
                 channel.sendMessage(helpCommandEmbed.build()).queue();

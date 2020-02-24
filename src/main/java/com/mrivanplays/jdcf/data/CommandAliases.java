@@ -9,23 +9,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents a annotation, which represents aliases of a {@link com.mrivanplays.jdcf.Command} Alias is basically a
- * (short) another name of a command. Should be annotated directly on the class implementing the parent command class
- * like:
+ * Represents a annotation, which specifies a specific {@link com.mrivanplays.jdcf.Command}'s names.
  *
  * <h3>Usage example:</h3>
  *
  * <pre><code>
  *{@literal @CommandAliases("alias1|alias2|alias3")}
- * public class MyCommand extends Command
- * {
- *
- *     public MyCommand() // assuming this will be empty
- *     {
- *         super("commandname", Permission.MANAGE_SERVER);
- *     }
- *
- *     // other code
+ * public class MyCommand extends Command {
+ *    // other magical stuff happening here
  * }</code></pre>
  *
  * <p>Aliases should be represented like: "alias1|alias2|alias3"

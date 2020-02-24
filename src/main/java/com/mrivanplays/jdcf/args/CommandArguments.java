@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.CheckReturnValue;
 
 /**
@@ -226,6 +227,19 @@ public final class CommandArguments {
             return null;
         }
         return args.toArray(new String[0]);
+    }
+
+    /**
+     * Returns the raw list of arguments left. If any method in this class contains "next" in his name is being called
+     * before this method, the list won't have all the arguments.
+     *
+     * <p>It is generally preferable to not use this method
+     *
+     * @return list of arguments left or empty list if none
+     */
+    @NotNull
+    public List<String> getArgsLeftList() {
+        return args;
     }
 
     /**

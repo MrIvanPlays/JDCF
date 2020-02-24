@@ -16,8 +16,7 @@ import java.lang.annotation.Target;
  *
  * <pre><code>
  *{@literal @CommandUsage("hello [world] (123)")}
- * public class MyCommand extends Command
- * {
+ * public class MyCommand extends Command {
  *     // other code
  * }</code></pre>
  *
