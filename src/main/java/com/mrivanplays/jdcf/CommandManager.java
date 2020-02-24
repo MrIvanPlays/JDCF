@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import javax.naming.spi.DirObjectFactory;
 
 /**
  * Represents a command manager.
@@ -116,7 +117,19 @@ public final class CommandManager implements EventListener {
         Class<? extends Command> commandClass = command.getClass();
         CommandAliases annoAliases = commandClass.getAnnotation(CommandAliases.class);
         if (annoAliases != null) {
-            aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
+            String value = annoAliases.value();
+            boolean hasCharacter = false;
+            for (char c : value.toCharArray()) {
+                if (c == '|') {
+                    hasCharacter = true;
+                    break;
+                }
+            }
+            if (hasCharacter) {
+                aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
+            } else {
+                aliases = new String[] {value};
+            }
         }
         CommandDescription annoDescription = commandClass.getAnnotation(CommandDescription.class);
         if (annoDescription != null) {
