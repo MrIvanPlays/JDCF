@@ -1,18 +1,7 @@
-buildscript {
-    repositories {
-        maven { url 'https://repo.spring.io/plugins-release' }
-    }
-    dependencies {
-        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
-    }
-}
-
 plugins {
     id 'java'
     id 'maven-publish'
 }
-
-apply plugin: 'propdeps'
 
 repositories {
     mavenCentral()
@@ -26,8 +15,8 @@ configurations.all {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    provided('net.dv8tion:JDA:4.1.1_105')
-    provided('com.fasterxml.jackson.core:jackson-databind:2.10.1')
+    compileOnly ('net.dv8tion:JDA:4.1.1_105')
+    compileOnly ('com.fasterxml.jackson.core:jackson-databind:2.10.1')
 }
 
 java {
