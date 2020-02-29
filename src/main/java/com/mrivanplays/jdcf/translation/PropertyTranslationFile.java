@@ -12,11 +12,14 @@ import java.util.Enumeration;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+/**
+ * Represents a translation file implementation, utilising the ".properties" file type.
+ */
 public class PropertyTranslationFile implements TranslationFile {
 
     private ResourceBundle bundle;
 
-    public PropertyTranslationFile(InputStream in) throws IOException  {
+    public PropertyTranslationFile(InputStream in) throws IOException {
         bundle = new PropertyResourceBundle(in);
     }
 

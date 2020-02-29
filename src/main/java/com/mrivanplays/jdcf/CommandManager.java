@@ -44,8 +44,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.naming.spi.DirObjectFactory;
 
 /**
  * Represents a command manager.
@@ -128,7 +128,7 @@ public final class CommandManager implements EventListener {
             if (hasCharacter) {
                 aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
             } else {
-                aliases = new String[] {value};
+                aliases = new String[]{value};
             }
         }
         CommandDescription annoDescription = commandClass.getAnnotation(CommandDescription.class);
@@ -244,6 +244,23 @@ public final class CommandManager implements EventListener {
         } else {
             return commands.stream().filter(command -> command.getAliases() != null && Arrays.stream(command.getAliases()).anyMatch(al -> al.equalsIgnoreCase(alias))).findFirst();
         }
+    }
+
+    /**
+     * Finds the command(s) with the specified startsWith argument.
+     *
+     * @param startsWith string which starts with a command alias
+     * @return list of commands found
+     */
+    @NotNull
+    public List<RegisteredCommand> findCommand(@NotNull String startsWith) {
+        Objects.requireNonNull(startsWith, "startsWith");
+        return commands.stream().filter(command ->
+                command.getDirectCommandName() != null
+                        ? command.getDirectCommandName().toLowerCase().startsWith(startsWith.toLowerCase())
+                        : command.getAliases() != null
+                        && Arrays.stream(command.getAliases()).anyMatch(alias -> alias.toLowerCase().startsWith(startsWith.toLowerCase()))
+        ).collect(Collectors.toList());
     }
 
     /**
@@ -407,7 +424,7 @@ public final class CommandManager implements EventListener {
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
-                        e.printStackTrace();
+                        logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
                         return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
@@ -446,7 +463,7 @@ public final class CommandManager implements EventListener {
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
-                        e.printStackTrace();
+                        logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
                         return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
@@ -468,7 +485,7 @@ public final class CommandManager implements EventListener {
                                 new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
-                        e.printStackTrace();
+                        logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
                         return false;
                     } finally {
                         if (commandSettings.isLogExecutedCommands()) {
