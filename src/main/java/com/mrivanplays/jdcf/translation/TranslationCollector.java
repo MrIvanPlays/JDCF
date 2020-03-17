@@ -43,7 +43,7 @@ public class TranslationCollector {
     @NotNull
     public Translations getTranslations(@NotNull String language) throws IOException {
         Objects.requireNonNull(language, "language");
-        if (!Utils.contains(language.toLowerCase(), supportedLanguages)) {
+        if (!isSupported(language)) {
             return getDefault();
         } else {
             String translationFileName = "jdcf_translations_" + language.toLowerCase() + ".properties";
@@ -58,6 +58,17 @@ public class TranslationCollector {
                 }
             }
         }
+    }
+
+    /**
+     * Returns whenever the specified language is supported.
+     *
+     * @param language the language you want to check if it is supported or not
+     * @return <code>true</code> if supported, <code>false</code> otherwise
+     */
+    public boolean isSupported(@NotNull String language) {
+        Objects.requireNonNull(language, "language");
+        return Utils.contains(language.toLowerCase(), supportedLanguages);
     }
 
     /**

@@ -11,7 +11,7 @@ import com.mrivanplays.jdcf.data.CommandUsage;
 import com.mrivanplays.jdcf.data.MarkGuildOnly;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
-import com.mrivanplays.jdcf.util.EmbedUtil;
+import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.Permission;
 
@@ -38,18 +38,18 @@ public class CommandPrefix extends Command {
         args.nextString().ifPresent(subCommand -> {
             if (subCommand.equalsIgnoreCase("set")) {
                 if (!context.getMember().hasPermission(Permission.ADMINISTRATOR)) {
-                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
+                    context.getChannel().sendMessage(Utils.setAuthor(settings.getNoPermissionEmbed(), context.getAuthor()).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
                 }
                 args.nextString().ifPresent(prefix -> {
                     commandManager.getSettings().getPrefixHandler().setGuildPrefix(prefix, context.getGuild().getIdLong());
-                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getSuccessEmbed().get(),
+                    context.getChannel().sendMessage(Utils.setAuthor(settings.getSuccessEmbed(),
                             context.getAuthor()).setDescription(translations.getTranslation("prefix_changed", prefix)).build()).queue();
                 }).orElse(failReason -> {
                     if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
-                        context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getErrorEmbed().get(), context.getAuthor())
+                        context.getChannel().sendMessage(Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
                                 .setDescription(translations.getTranslation("specify_prefix")).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
@@ -58,7 +58,7 @@ public class CommandPrefix extends Command {
             }
         }).orElse(failReason -> {
             if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
-                context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getPrefixCommandEmbed().get(), context.getAuthor())
+                context.getChannel().sendMessage(Utils.setAuthor(settings.getPrefixCommandEmbed(), context.getAuthor())
                         .setDescription(translations.getTranslation("prefix_is",
                                 settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong()))).build()).queue();
             }

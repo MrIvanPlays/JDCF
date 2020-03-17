@@ -405,14 +405,14 @@ public final class CommandManager implements EventListener {
                 if (msg.isFromGuild()) {
                     PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
                     if (!command.hasPermission(permissionCheck)) {
-                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                        callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getNoPermissionEmbed(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
                         return false;
                     }
                     TextChannel cec = commandSettings.getCommandExecuteChannel();
                     if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
-                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                        callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getErrorEmbed(), author)
                                 .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
                                 .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
@@ -434,7 +434,7 @@ public final class CommandManager implements EventListener {
                         }
                     }
                 } else {
-                    callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                    callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getErrorEmbed(), author)
                             .setDescription(commandSettings.getTranslations().getTranslation("command_guild_only", name)).build())
                             .queue(m -> m.delete().queueAfter(15, TimeUnit.SECONDS));
                     return false;
@@ -443,7 +443,7 @@ public final class CommandManager implements EventListener {
                 if (msg.isFromGuild()) {
                     PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
                     if (!command.hasPermission(permissionCheck)) {
-                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                        callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getNoPermissionEmbed(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
                         return false;
@@ -451,7 +451,7 @@ public final class CommandManager implements EventListener {
 
                     TextChannel cec = commandSettings.getCommandExecuteChannel();
                     if (cec != null && !member.hasPermission(Permission.ADMINISTRATOR) && callbackChannel.getIdLong() != cec.getIdLong()) {
-                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getErrorEmbed().get(), author)
+                        callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getErrorEmbed(), author)
                                 .setDescription(commandSettings.getTranslations().getTranslation("commands_channel", cec.getAsMention()))
                                 .build()).queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         msg.delete().queueAfter(15, TimeUnit.SECONDS);
@@ -475,7 +475,7 @@ public final class CommandManager implements EventListener {
                 } else {
                     PermissionCheckContext permissionCheck = new PermissionCheckContext(jda, author, guild, member, name);
                     if (!command.hasPermission(permissionCheck)) {
-                        callbackChannel.sendMessage(EmbedUtil.setAuthor(commandSettings.getNoPermissionEmbed().get(), author).build())
+                        callbackChannel.sendMessage(Utils.setAuthor(commandSettings.getNoPermissionEmbed(), author).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         return false;
                     }

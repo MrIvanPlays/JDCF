@@ -1,8 +1,12 @@
 package com.mrivanplays.jdcf.util;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class Utils {
 
@@ -32,5 +36,9 @@ public class Utils {
             pages.add(list.subList(pageNum * pageSize, Math.min(++pageNum * pageSize, list.size())));
         }
         return pages;
+    }
+
+    public static EmbedBuilder setAuthor(Supplier<EmbedBuilder> embed, User author) {
+        return embed.get().setAuthor(author.getName(), author.getEffectiveAvatarUrl(), author.getEffectiveAvatarUrl());
     }
 }

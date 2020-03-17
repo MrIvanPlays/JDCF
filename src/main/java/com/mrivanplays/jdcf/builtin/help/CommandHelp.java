@@ -10,8 +10,8 @@ import com.mrivanplays.jdcf.args.FailReason;
 import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
-import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
+import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -137,8 +137,7 @@ public class CommandHelp extends Command {
                 RegisteredCommand command = commandManager.getCommand(parsed).orElse(null);
                 String prefix = settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong());
                 if (command == null) {
-                    EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                    channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                    channel.sendMessage(Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
                             .setDescription(translations.getTranslation("help_invalid_command", prefix)).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
@@ -148,7 +147,7 @@ public class CommandHelp extends Command {
                         context.getJda(), context.getAuthor(), context.getGuild(), context.getMember(), context.getAlias()
                 );
                 if (!command.hasPermission(permissionCheck)) {
-                    context.getChannel().sendMessage(EmbedUtil.setAuthor(settings.getNoPermissionEmbed().get(), context.getAuthor()).build())
+                    context.getChannel().sendMessage(Utils.setAuthor(settings.getNoPermissionEmbed(), context.getAuthor()).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
@@ -158,14 +157,13 @@ public class CommandHelp extends Command {
                         channel.sendMessage(translations.getTranslation("help_asked_help", context.getAuthor().getAsMention())).queue();
                         return;
                     }
-                    EmbedBuilder errorEmbed = settings.getErrorEmbed().get();
-                    channel.sendMessage(EmbedUtil.setAuthor(errorEmbed, context.getAuthor())
+                    channel.sendMessage(Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
                             .setDescription(translations.getTranslation("help_no_data")).build())
                             .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                     context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     return;
                 }
-                EmbedBuilder helpCommandEmbed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
+                EmbedBuilder helpCommandEmbed = Utils.setAuthor(settings.getHelpCommandEmbed(), context.getAuthor());
                 helpCommandEmbed.addField(getKeyword("usage"), "`" + prefix + command.getUsage() + "`", true);
                 helpCommandEmbed.addField(getKeyword("description"), command.getDescription(), true);
                 if (command.getAliases() != null) { // todo: when deprecation removal happens, this check will be redundant

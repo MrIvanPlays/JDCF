@@ -44,7 +44,7 @@ class HelpPaginator {
                     .filter(cmd ->
                             cmd.getDescription() != null & cmd.getUsage() != null && cmd.hasPermission(permissionCheck))
                     .collect(Collectors.toList());
-            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
+            EmbedBuilder embed = Utils.setAuthor(settings.getHelpCommandEmbed(), context.getAuthor());
             StringBuilder commandDescription = new StringBuilder();
             for (RegisteredCommand in : page) {
                 commandDescription.append("`")
@@ -70,7 +70,7 @@ class HelpPaginator {
         List<EmbedBuilder> pages = new ArrayList<>();
         for (int i = 0; i < filteredPages.size(); i++) {
             List<RegisteredCommand> page = filteredPages.get(i);
-            EmbedBuilder embed = EmbedUtil.setAuthor(settings.getHelpCommandEmbed().get(), context.getAuthor());
+            EmbedBuilder embed = Utils.setAuthor(settings.getHelpCommandEmbed(), context.getAuthor());
             StringBuilder commandDescription = new StringBuilder();
             for (RegisteredCommand in : page) {
                 commandDescription.append("`")

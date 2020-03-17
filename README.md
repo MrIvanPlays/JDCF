@@ -59,15 +59,11 @@ import net.dv8tion.jda.api.Permission;
 import org.jetbrains.annotations.NotNull;
 
 // the usage and description aren't necessary if you don't enable
-// the help command. the aliases are also not required to have
+// the help command.
 @CommandDescription("My command runs on command")
 @CommandUsage("mycommandname <something>")
 @CommandAliases("commandname|mcn|cn")
 public class MyCommand extends Command {
-
-    public MyCommand() {
-        super("mycommandname", Permission.MANAGE_SERVER, Permission.MANAGE_PERMISSIONS); // the permissions are not necessary 
-    }
 
     @Override
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
@@ -92,7 +88,5 @@ public static void main(String[] args) {
     commandManager.registerCommand(new MyCommand());
 }
 ```
-
-More examples can be found [here](https://github.com/MrIvanPlays/JDCF/tree/master/src/test/java/com/mrivanplays/jdcf/examples)
 
 I think you can figure out the other things yourself. For any questions you can ask me on Discord showed up.
