@@ -5,7 +5,6 @@ import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.RegisteredCommand;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
-import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.Utils;
 
 import net.dv8tion.jda.api.EmbedBuilder;

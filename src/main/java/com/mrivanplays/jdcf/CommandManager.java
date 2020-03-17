@@ -11,7 +11,6 @@ import com.mrivanplays.jdcf.data.CommandUsage;
 import com.mrivanplays.jdcf.data.MarkGuildOnly;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.util.CommandDispatcherMessage;
-import com.mrivanplays.jdcf.util.EmbedUtil;
 import com.mrivanplays.jdcf.util.EventWaiter;
 import com.mrivanplays.jdcf.util.Utils;
 
