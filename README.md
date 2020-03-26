@@ -90,3 +90,6 @@ public static void main(String[] args) {
 ```
 
 I think you can figure out the other things yourself. For any questions you can ask me on Discord showed up.
+
+# Sponsors
+Thanks to [JetBrains](https://jetbrains.com/?from=JDCF) I am able to use their products on this project. Thank you JetBrains <3
