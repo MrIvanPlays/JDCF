@@ -292,8 +292,9 @@ public final class CommandManager implements EventListener {
             RegisteredCommand command = commandOptional.get();
             String messageContent = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong()) + commandLine;
             CommandExecutionContext context = new CommandExecutionContext(
-                    new CommandDispatcherMessage(messageContent, jda, guild, channel, member, commandSettings.getExecutorService()), alias, true);
-            return command.execute(context, new CommandArguments(args, jda, guild));
+                    new CommandDispatcherMessage(messageContent, jda, guild, channel, member, commandSettings.getExecutorService()),
+                    alias, true, command.getDataAsCommandData(), this);
+            return command.execute(context, new CommandArguments(context, args));
         }
         return false;
     }
@@ -418,9 +419,12 @@ public final class CommandManager implements EventListener {
                         return false;
                     }
                     try {
+                        CommandExecutionContext commandContext = new CommandExecutionContext(
+                                msg, name, false, command.getDataAsCommandData(), this
+                        );
                         return command.execute(
-                                new CommandExecutionContext(msg, name, false),
-                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                                commandContext,
+                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
@@ -457,9 +461,12 @@ public final class CommandManager implements EventListener {
                         return false;
                     }
                     try {
+                        CommandExecutionContext commandContext = new CommandExecutionContext(
+                                msg, name, false, command.getDataAsCommandData(), this
+                        );
                         return command.execute(
-                                new CommandExecutionContext(msg, name, false),
-                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                                commandContext,
+                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
@@ -479,9 +486,12 @@ public final class CommandManager implements EventListener {
                         return false;
                     }
                     try {
+                        CommandExecutionContext commandContext = new CommandExecutionContext(
+                                msg, name, false, command.getDataAsCommandData(), this
+                        );
                         return command.execute(
-                                new CommandExecutionContext(msg, name, false),
-                                new CommandArguments(Arrays.copyOfRange(content, argsFrom, content.length), jda, guild));
+                                commandContext,
+                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);

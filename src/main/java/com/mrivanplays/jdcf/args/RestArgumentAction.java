@@ -14,6 +14,7 @@ public final class RestArgumentAction {
 
     private final FailReason failReason;
     private String argument;
+    private boolean actionTook = false;
 
     public RestArgumentAction(FailReason failReason, String argument) {
         this.failReason = failReason;
@@ -49,7 +50,17 @@ public final class RestArgumentAction {
         Objects.requireNonNull(toRun, "toRun");
         if (failReason != FailReason.NO_FAIL_REASON) {
             toRun.accept(failReason, argument);
+            actionTook = true;
         }
+    }
+
+    /**
+     * Returns whenever an action was took on the rest argument or not.
+     *
+     * @return <code>true</code> if action took, <code>false</code> if not
+     */
+    public boolean actionTook() {
+        return actionTook;
     }
 
     /**

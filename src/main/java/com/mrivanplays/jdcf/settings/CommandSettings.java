@@ -1,6 +1,8 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrivanplays.jdcf.args.FailReasonHandler;
+import com.mrivanplays.jdcf.builtin.DefaultFailReasonHandler;
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
 import com.mrivanplays.jdcf.translation.TranslationCollector;
 import com.mrivanplays.jdcf.translation.Translations;
@@ -40,6 +42,7 @@ public final class CommandSettings {
     private Translations translations;
     private boolean logExecutedCommands;
     private boolean allowDMSCommands;
+    private FailReasonHandler failReasonHandler;
 
     /**
      * Returns the default settings object
@@ -67,6 +70,7 @@ public final class CommandSettings {
         }
         settings.setLogExecutedCommands(false);
         settings.setAllowDMSCommands(true);
+        settings.setFailReasonHandler(new DefaultFailReasonHandler());
         return settings;
     }
 
@@ -354,5 +358,26 @@ public final class CommandSettings {
      */
     public void setAllowDMSCommands(boolean allowDMSCommands) {
         this.allowDMSCommands = allowDMSCommands;
+    }
+
+    /**
+     * Returns the fail reason handler.
+     *
+     * @return fail reason handler.
+     * @see FailReasonHandler
+     */
+    @Nullable
+    public FailReasonHandler getFailReasonHandler() {
+        return failReasonHandler;
+    }
+
+    /**
+     * Sets a new fail reason handler.
+     *
+     * @param failReasonHandler fail reason handler
+     * @see FailReasonHandler
+     */
+    public void setFailReasonHandler(@Nullable FailReasonHandler failReasonHandler) {
+        this.failReasonHandler = failReasonHandler;
     }
 }

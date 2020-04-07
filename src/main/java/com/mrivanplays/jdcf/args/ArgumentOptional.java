@@ -1,5 +1,7 @@
 package com.mrivanplays.jdcf.args;
 
+import com.mrivanplays.jdcf.CommandExecutionContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,24 +20,34 @@ public final class ArgumentOptional<T> {
     /**
      * Creates a new argument optional. If the value given is null, the optional will be empty.
      *
-     * @param value      the value of which you want argument optional
-     * @param failReason the fail reason of why this argument optional would fail
-     * @param argument   argument typed. Can be null
-     * @param <T>        argument type
+     * @param value             the value of which you want argument optional
+     * @param failReason        the fail reason of why this argument optional would fail
+     * @param argument          argument typed. Can be null
+     * @param commandContext    command context
+     * @param failReasonHandler default fail reason handler
+     * @param <T>               argument type
      * @return argument optional if value not null, empty argument optional else
      */
-    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason, @Nullable String argument) {
-        return new ArgumentOptional<>(value, failReason, argument);
+    public static <T> ArgumentOptional<T> of(@Nullable T value, @NotNull FailReason failReason,
+                                             @Nullable String argument, @NotNull CommandExecutionContext commandContext,
+                                             @Nullable FailReasonHandler failReasonHandler) {
+        return new ArgumentOptional<>(value, failReason, argument, commandContext, failReasonHandler);
     }
 
     private final T value;
     private final FailReason failReason;
     private String argument;
+    private final CommandExecutionContext commandContext;
+    private FailReasonHandler failReasonHandler;
 
-    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason, @Nullable String argument) {
+    private ArgumentOptional(@Nullable T value, @NotNull FailReason failReason,
+                             @Nullable String argument, @NotNull CommandExecutionContext commandContext,
+                             @Nullable FailReasonHandler failReasonHandler) {
         this.value = value;
         this.failReason = Objects.requireNonNull(failReason, "failReason");
         this.argument = argument;
+        this.commandContext = commandContext;
+        this.failReasonHandler = failReasonHandler;
     }
 
     /**
@@ -53,7 +65,14 @@ public final class ArgumentOptional<T> {
         if (isPresent()) {
             action.accept(value);
         }
-        return new RestArgumentAction(failReason, argument);
+        RestArgumentAction restArgumentAction = new RestArgumentAction(failReason, argument);
+        try {
+            return restArgumentAction;
+        } finally {
+            if (!restArgumentAction.wasValuePresent() && !restArgumentAction.actionTook() && failReasonHandler != null) {
+                failReasonHandler.handleFailReason(commandContext, failReason, argument);
+            }
+        }
     }
 
     /**
@@ -69,11 +88,11 @@ public final class ArgumentOptional<T> {
         if (isPresent()) {
             U newValue = mapper.apply(value);
             if (newValue == null) {
-                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument);
+                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument, commandContext, failReasonHandler);
             }
-            return ArgumentOptional.of(newValue, failReason, argument);
+            return ArgumentOptional.of(newValue, failReason, argument, commandContext, failReasonHandler);
         } else {
-            return ArgumentOptional.of(null, failReason, argument);
+            return ArgumentOptional.of(null, failReason, argument, commandContext, failReasonHandler);
         }
     }
 

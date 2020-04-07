@@ -1,7 +1,6 @@
 package com.mrivanplays.jdcf.args;
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
+import com.mrivanplays.jdcf.CommandExecutionContext;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import javax.annotation.CheckReturnValue;
 
 /**
@@ -20,17 +18,17 @@ import javax.annotation.CheckReturnValue;
 public final class CommandArguments {
 
     private final List<String> args;
-    private final JDA jda;
-    private final Guild guild;
+    private final CommandExecutionContext commandContext;
+    private FailReasonHandler failReasonHandler;
 
-    public CommandArguments(String[] args, JDA jda, Guild guild) {
-        this(new ArrayList<>(Arrays.asList(args)), jda, guild);
+    public CommandArguments(CommandExecutionContext commandContext, String[] args) {
+        this(commandContext, new ArrayList<>(Arrays.asList(args)));
     }
 
-    public CommandArguments(List<String> args, JDA jda, Guild guild) {
+    public CommandArguments(CommandExecutionContext commandContext, List<String> args) {
         this.args = args;
-        this.jda = jda;
-        this.guild = guild;
+        this.commandContext = commandContext;
+        this.failReasonHandler = commandContext.getCommandManagerCreator().getSettings().getFailReasonHandler();
     }
 
     /**
@@ -115,20 +113,20 @@ public final class CommandArguments {
     public <T> ArgumentOptional<T> next(@NotNull ArgumentResolver<T> resolver) {
         Objects.requireNonNull(resolver, "resolver");
         if (args.size() == 0) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null, commandContext, failReasonHandler);
         }
         String argument = nextUnsafe();
         if (argument == null) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null, commandContext, failReasonHandler);
         }
         try {
-            T resolved = resolver.resolve(new ArgumentResolverContext(argument, guild, jda));
+            T resolved = resolver.resolve(new ArgumentResolverContext(argument, commandContext.getGuild(), commandContext.getJda()));
             if (resolved == null) {
-                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument);
+                return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NULL, argument, commandContext, failReasonHandler);
             }
-            return ArgumentOptional.of(resolved, FailReason.NO_FAIL_REASON, argument);
+            return ArgumentOptional.of(resolved, FailReason.NO_FAIL_REASON, argument, commandContext, failReasonHandler);
         } catch (Throwable error) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NOT_TYPE, argument);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_PARSED_NOT_TYPE, argument, commandContext, failReasonHandler);
         }
     }
 
@@ -142,13 +140,13 @@ public final class CommandArguments {
     @CheckReturnValue
     public ArgumentOptional<String> nextString() {
         if (args.size() == 0) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null, commandContext, failReasonHandler);
         }
         String argument = nextUnsafe();
         if (argument == null) {
-            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null);
+            return ArgumentOptional.of(null, FailReason.ARGUMENT_NOT_TYPED, null, commandContext, failReasonHandler);
         }
-        return ArgumentOptional.of(argument, FailReason.NO_FAIL_REASON, argument);
+        return ArgumentOptional.of(argument, FailReason.NO_FAIL_REASON, argument, commandContext, failReasonHandler);
     }
 
     @NotNull
@@ -249,6 +247,6 @@ public final class CommandArguments {
      */
     @NotNull
     public CommandArguments copy() {
-        return new CommandArguments(args, jda, guild);
+        return new CommandArguments(commandContext, args);
     }
 }

@@ -95,6 +95,16 @@ public final class RegisteredCommand {
     }
 
     /**
+     * Returns the data of the command, stored in this object, as a new {@link CommandData} object.
+     *
+     * @return command data
+     */
+    @NotNull
+    public CommandData getDataAsCommandData() {
+        return new CommandData(usage, description, aliases);
+    }
+
+    /**
      * Checks if the specified member has the required permission to execute this command.
      *
      * @param context permission check context

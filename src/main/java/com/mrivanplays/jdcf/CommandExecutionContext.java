@@ -20,11 +20,16 @@ public final class CommandExecutionContext {
     private final Message message;
     private final String alias;
     private final boolean fromDispatcher;
+    private final CommandData commandData;
+    private final CommandManager creator;
 
-    public CommandExecutionContext(@NotNull Message message, @NotNull String alias, boolean fromDispatcher) {
+    public CommandExecutionContext(@NotNull Message message, @NotNull String alias, boolean fromDispatcher,
+                                   @NotNull CommandData commandData, @NotNull CommandManager creator) {
         this.message = message;
         this.alias = alias;
         this.fromDispatcher = fromDispatcher;
+        this.commandData = commandData;
+        this.creator = creator;
     }
 
     /**
@@ -128,6 +133,26 @@ public final class CommandExecutionContext {
     @NotNull
     public String getAlias() {
         return alias;
+    }
+
+    /**
+     * Returns the data of the command execution triggered.
+     *
+     * @return command data
+     */
+    @NotNull
+    public CommandData getCommandData() {
+        return commandData;
+    }
+
+    /**
+     * Returns the {@link CommandManager}, whom have initialized this command execution context.
+     *
+     * @return command manager initializer
+     */
+    @NotNull
+    public CommandManager getCommandManagerCreator() {
+        return creator;
     }
 
     /**
