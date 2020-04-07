@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'java-library'
 }
 
 repositories {
@@ -14,9 +15,8 @@ configurations.all {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
-    compileOnly ('net.dv8tion:JDA:4.1.1_105')
-    compileOnly ('com.fasterxml.jackson.core:jackson-databind:2.10.1')
+    api ('net.dv8tion:JDA:4.1.1_133')
+    api ('com.fasterxml.jackson.core:jackson-databind:2.10.1')
 }
 
 java {
@@ -76,11 +76,6 @@ publishing {
             }
         }
     }
-}
-
-javadoc {
-    source = sourceSets.main.allJava
-    classpath = configurations.compile
 }
 
 compileJava.options.encoding = 'UTF-8'

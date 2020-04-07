@@ -48,6 +48,18 @@ public final class CommandDispatcherARS<T> implements AuditableRestAction<T> {
         return null;
     }
 
+    @Nonnull
+    @Override
+    public AuditableRestAction<T> timeout(long timeout, @Nonnull TimeUnit unit) {
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public AuditableRestAction<T> deadline(long timestamp) {
+        return this;
+    }
+
     @Override
     public void queue() {
     }
