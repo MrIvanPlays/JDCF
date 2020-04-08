@@ -30,20 +30,25 @@ import java.util.concurrent.TimeUnit;
 @CommandAliases("help")
 public class CommandHelp extends Command {
 
-    private final CommandManager commandManager;
     private final EventWaiter eventWaiter;
     private final String arrowRight = "\u27A1";
     private final String arrowLeft = "\u2B05";
     private final Map<Long, Integer> currentPageMap = new HashMap<>();
 
-    public CommandHelp(CommandManager commandManager, EventWaiter eventWaiter) {
-        this.commandManager = commandManager;
+    public CommandHelp(EventWaiter eventWaiter) {
         this.eventWaiter = eventWaiter;
     }
 
     @Override
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+        CommandManager commandManager = context.getCommandManagerCreator();
         CommandSettings settings = commandManager.getSettings();
+        if (settings.getHelpCommandEmbed() == null) {
+            EmbedBuilder embed = Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
+                    .setDescription("Whoops; bot help command not properly configured. Send this to the developer of the bot.");
+            context.getChannel().sendMessage(embed.build()).queue();
+            return true;
+        }
         Translations translations = settings.getTranslations();
         if (context.isFromDispatcher()) {
             throw new UnsupportedOperationException(translations.getTranslation("help_not_executed"));
@@ -164,10 +169,10 @@ public class CommandHelp extends Command {
                     return;
                 }
                 EmbedBuilder helpCommandEmbed = Utils.setAuthor(settings.getHelpCommandEmbed(), context.getAuthor());
-                helpCommandEmbed.addField(getKeyword("usage"), "`" + prefix + command.getUsage() + "`", true);
-                helpCommandEmbed.addField(getKeyword("description"), command.getDescription(), true);
+                helpCommandEmbed.addField(getKeyword(settings, "usage"), "`" + prefix + command.getUsage() + "`", true);
+                helpCommandEmbed.addField(getKeyword(settings, "description"), command.getDescription(), true);
                 if (command.getAliases() != null) { // todo: when deprecation removal happens, this check will be redundant
-                    helpCommandEmbed.addField(getKeyword("aliases"), String.join(", ", command.getAliases()), true);
+                    helpCommandEmbed.addField(getKeyword(settings, "aliases"), String.join(", ", command.getAliases()), true);
                 }
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
@@ -176,8 +181,8 @@ public class CommandHelp extends Command {
         return true;
     }
 
-    private String getKeyword(String keyword) {
-        return commandManager.getSettings().getTranslations().getTranslation("help_" + keyword + "_keyword");
+    private String getKeyword(CommandSettings settings, String keyword) {
+        return settings.getTranslations().getTranslation("help_" + keyword + "_keyword");
     }
 
     private void handleAction(Message message, User author, boolean isArrowLeft, HelpPaginator paginator, int currentPage, long userId) {

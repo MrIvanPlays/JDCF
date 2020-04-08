@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -40,7 +41,8 @@ public class DefaultFailReasonHandler implements FailReasonHandler {
             String usage = prefix + commandData.getUsage();
             EmbedBuilder embed = Utils.setAuthor(errorEmbedSupplier, context.getAuthor())
                     .setDescription(translations.getTranslation("incorrect_usage", usage));
-            context.getChannel().sendMessage(embed.build()).queue();
+            context.getChannel().sendMessage(embed.build()).queue(msg -> msg.delete().queueAfter(15, TimeUnit.SECONDS));
+            context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
         }
     }
 }

@@ -2,7 +2,6 @@ package com.mrivanplays.jdcf.builtin;
 
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
-import com.mrivanplays.jdcf.CommandManager;
 import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.args.FailReason;
 import com.mrivanplays.jdcf.data.CommandAliases;
@@ -13,6 +12,7 @@ import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.Utils;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,15 +25,15 @@ import java.util.concurrent.TimeUnit;
 @MarkGuildOnly
 public class CommandPrefix extends Command {
 
-    private final CommandManager commandManager;
-
-    public CommandPrefix(CommandManager commandManager) {
-        this.commandManager = commandManager;
-    }
-
     @Override
     public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
-        CommandSettings settings = commandManager.getSettings();
+        CommandSettings settings = context.getCommandManagerCreator().getSettings();
+        if (settings.getPrefixCommandEmbed() == null) {
+            EmbedBuilder errorEmbed = Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
+                    .setDescription("Whoops; bot prefix command not properly configured. Send this to the developer of the bot.");
+            context.getChannel().sendMessage(errorEmbed.build()).queue();
+            return true;
+        }
         Translations translations = settings.getTranslations();
         args.nextString().ifPresent(subCommand -> {
             if (subCommand.equalsIgnoreCase("set")) {
@@ -44,9 +44,12 @@ public class CommandPrefix extends Command {
                     return;
                 }
                 args.nextString().ifPresent(prefix -> {
-                    commandManager.getSettings().getPrefixHandler().setGuildPrefix(prefix, context.getGuild().getIdLong());
-                    context.getChannel().sendMessage(Utils.setAuthor(settings.getSuccessEmbed(),
-                            context.getAuthor()).setDescription(translations.getTranslation("prefix_changed", prefix)).build()).queue();
+                    context.getCommandManagerCreator()
+                            .getSettings()
+                            .getPrefixHandler()
+                            .setGuildPrefix(prefix, context.getGuild().getIdLong());
+                    context.getChannel().sendMessage(Utils.setAuthor(settings.getSuccessEmbed(), context.getAuthor())
+                            .setDescription(translations.getTranslation("prefix_changed", prefix)).build()).queue();
                 }).orElse(failReason -> {
                     if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
                         context.getChannel().sendMessage(Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())

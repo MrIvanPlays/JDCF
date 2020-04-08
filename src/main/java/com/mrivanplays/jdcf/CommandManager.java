@@ -86,14 +86,14 @@ public final class CommandManager implements EventListener {
         getSettings().getExecutorService().schedule(() -> {
             if (getSettings().isEnablePrefixCommand()) {
                 if (!getCommand("prefix").isPresent()) {
-                    registerCommand(new CommandPrefix(this));
+                    registerCommand(new CommandPrefix());
                 }
             }
             if (getSettings().isEnableHelpCommand()) {
                 if (!getCommand("help").isPresent()) {
                     EventWaiter eventWaiter = new EventWaiter(getSettings().getExecutorService());
                     waiterRegistry.accept(eventWaiter);
-                    registerCommand(new CommandHelp(this, eventWaiter));
+                    registerCommand(new CommandHelp(eventWaiter));
                 }
             }
         }, 1, TimeUnit.SECONDS);
