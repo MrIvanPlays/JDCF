@@ -1,7 +1,7 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mrivanplays.jdcf.args.FailReasonHandler;
+import com.mrivanplays.jdcf.args.ArgumentParseGlobalFailHandler;
 import com.mrivanplays.jdcf.builtin.DefaultFailReasonHandler;
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
 import com.mrivanplays.jdcf.translation.TranslationCollector;
@@ -42,7 +42,7 @@ public final class CommandSettings {
     private Translations translations;
     private boolean logExecutedCommands;
     private boolean allowDMSCommands;
-    private FailReasonHandler failReasonHandler;
+    private ArgumentParseGlobalFailHandler globalFailHandler;
 
     /**
      * Returns the default settings object
@@ -361,23 +361,23 @@ public final class CommandSettings {
     }
 
     /**
-     * Returns the fail reason handler.
+     * Returns the global argument parse fail handler.
      *
-     * @return fail reason handler.
-     * @see FailReasonHandler
+     * @return global argument parse fail handler.
+     * @see ArgumentParseGlobalFailHandler
      */
     @Nullable
-    public FailReasonHandler getFailReasonHandler() {
-        return failReasonHandler;
+    public ArgumentParseGlobalFailHandler getGlobalFailHandler() {
+        return globalFailHandler;
     }
 
     /**
-     * Sets a new fail reason handler.
+     * Sets a new global argument parse fail handler.
      *
-     * @param failReasonHandler fail reason handler
-     * @see FailReasonHandler
+     * @param globalFailHandler fail reason handler
+     * @see ArgumentParseGlobalFailHandler
      */
-    public void setFailReasonHandler(@Nullable FailReasonHandler failReasonHandler) {
-        this.failReasonHandler = failReasonHandler;
+    public void setFailReasonHandler(@Nullable ArgumentParseGlobalFailHandler globalFailHandler) {
+        this.globalFailHandler = globalFailHandler;
     }
 }

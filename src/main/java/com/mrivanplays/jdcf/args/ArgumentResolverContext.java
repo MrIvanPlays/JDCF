@@ -15,22 +15,21 @@ public final class ArgumentResolverContext {
     private final Guild guild;
     private final JDA jda;
 
-    public ArgumentResolverContext(@NotNull String argument, @NotNull JDA jda) {
+    public ArgumentResolverContext(String argument, @NotNull JDA jda) {
         this(argument, null, jda);
     }
 
-    public ArgumentResolverContext(@NotNull String argument, @Nullable Guild guild, @NotNull JDA jda) {
+    public ArgumentResolverContext(String argument, @Nullable Guild guild, @NotNull JDA jda) {
         this.argument = argument;
         this.guild = guild;
         this.jda = jda;
     }
 
     /**
-     * Returns the specific argument.
+     * Returns the specific argument. Depending if the argument is present or not, this may be empty.
      *
      * @return argument
      */
-    @NotNull
     public String getArgument() {
         return argument;
     }

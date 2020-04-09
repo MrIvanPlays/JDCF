@@ -1,8 +1,8 @@
 package com.mrivanplays.jdcf;
 
+import com.mrivanplays.jdcf.args.ArgumentHolder;
 import com.mrivanplays.jdcf.args.ArgumentResolverContext;
 import com.mrivanplays.jdcf.args.ArgumentResolvers;
-import com.mrivanplays.jdcf.args.CommandArguments;
 import com.mrivanplays.jdcf.builtin.CommandPrefix;
 import com.mrivanplays.jdcf.builtin.help.CommandHelp;
 import com.mrivanplays.jdcf.data.CommandAliases;
@@ -10,7 +10,6 @@ import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
 import com.mrivanplays.jdcf.data.MarkGuildOnly;
 import com.mrivanplays.jdcf.settings.CommandSettings;
-import com.mrivanplays.jdcf.util.CommandDispatcherMessage;
 import com.mrivanplays.jdcf.util.EventWaiter;
 import com.mrivanplays.jdcf.util.Utils;
 
@@ -250,46 +249,6 @@ public final class CommandManager implements EventListener {
         ).collect(Collectors.toList());
     }
 
-    /**
-     * Executes the specified command line with the specified arguments. When dispatched, the author and member of the
-     * command are the {@link JDA#getSelfUser()} and {@link Guild#getSelfMember()}. DISCLAIMER: This method does not
-     * check for permissions, meaning that when you call it you mean "I want this command executed no matter what".
-     *
-     * @param jda         the jda instance from which the command should be executed
-     * @param guild       the guild where the command should be executed
-     * @param channel     the channel, used for the command to reply with response
-     * @param member      the member for which the command is going to watch parameters
-     * @param commandLine the command line to execute
-     * @return execution success state
-     * @deprecated command dispatchers can't really be a thing, especially in JDA's ecosystem. If you want to dispatch
-     * commands manually, do it, but JDCF won't maintain such a breakable method.
-     */
-    @Deprecated
-    public boolean dispatchCommand(@NotNull JDA jda, @NotNull Guild guild, @NotNull TextChannel channel, @NotNull Member member, @NotNull String commandLine) {
-        Objects.requireNonNull(jda, "jda");
-        Objects.requireNonNull(guild, "guild");
-        Objects.requireNonNull(channel, "channel");
-        Objects.requireNonNull(member, "member");
-        Objects.requireNonNull(commandLine, "commandLine");
-        Utils.checkState(commandLine.length() != 0, "commandLine length = 0");
-        Utils.checkState(guild.getTextChannels().contains(channel), "channel should be from guild");
-
-        String[] content = commandLine.split(" ");
-        String alias = content[0];
-        String[] args = Arrays.copyOfRange(content, 1, content.length);
-
-        Optional<RegisteredCommand> commandOptional = getCommand(alias);
-        if (commandOptional.isPresent()) {
-            RegisteredCommand command = commandOptional.get();
-            String messageContent = commandSettings.getPrefixHandler().getPrefix(guild.getIdLong()) + commandLine;
-            CommandExecutionContext context = new CommandExecutionContext(
-                    new CommandDispatcherMessage(messageContent, jda, guild, channel, member, commandSettings.getExecutorService()),
-                    alias, true, command.getDataAsCommandData(), this);
-            return command.execute(context, new CommandArguments(context, args));
-        }
-        return false;
-    }
-
     // command execution handling and bot shutdown handling
     @Override
     public void onEvent(@Nonnull GenericEvent generic) {
@@ -341,36 +300,37 @@ public final class CommandManager implements EventListener {
         String aliasPrefix = content[0];
         MessageEventSubscriber subscriberEvent = new MessageEventSubscriber(message);
         if (commandSettings.isEnableMentionInsteadPrefix()) {
-            try {
-                ArgumentResolverContext context;
-                if (message.isFromGuild()) {
-                    context = new ArgumentResolverContext(aliasPrefix, guild, jda);
-                } else {
-                    context = new ArgumentResolverContext(aliasPrefix, jda);
-                }
-                User user = ArgumentResolvers.USER_MENTION.resolve(context);
-                if (user.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
-                    if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
-                        callSubscribers(subscriberEvent);
-                    }
-                } else {
-                    callSubscribers(subscriberEvent);
-                }
-            } catch (Exception e) {
-                // not a mention
-                if (aliasPrefix.startsWith(prefix)) {
-                    String name = aliasPrefix.replace(prefix, "");
-                    if (!name.isEmpty()) {
-                        if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
-                            callSubscribers(subscriberEvent);
-                        }
-                    } else {
-                        callSubscribers(subscriberEvent);
-                    }
-                } else {
-                    callSubscribers(subscriberEvent);
-                }
-            }
+            // todo
+//            try {
+//                ArgumentResolverContext context;
+//                if (message.isFromGuild()) {
+//                    context = new ArgumentResolverContext(aliasPrefix, guild, jda);
+//                } else {
+//                    context = new ArgumentResolverContext(aliasPrefix, jda);
+//                }
+////                User user = ArgumentResolvers.USER_MENTION.resolve(context);
+////                if (user.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
+////                    if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
+////                        callSubscribers(subscriberEvent);
+////                    }
+////                } else {
+////                    callSubscribers(subscriberEvent);
+////                }
+//            } catch (Exception e) {
+//                // not a mention
+//                if (aliasPrefix.startsWith(prefix)) {
+//                    String name = aliasPrefix.replace(prefix, "");
+//                    if (!name.isEmpty()) {
+//                        if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
+//                            callSubscribers(subscriberEvent);
+//                        }
+//                    } else {
+//                        callSubscribers(subscriberEvent);
+//                    }
+//                } else {
+//                    callSubscribers(subscriberEvent);
+//                }
+//            }
         } else {
             if (aliasPrefix.startsWith(prefix)) {
                 String name = aliasPrefix.replace(prefix, "");
@@ -415,7 +375,7 @@ public final class CommandManager implements EventListener {
                         );
                         return command.execute(
                                 commandContext,
-                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
+                                new ArgumentHolder(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
@@ -457,7 +417,7 @@ public final class CommandManager implements EventListener {
                         );
                         return command.execute(
                                 commandContext,
-                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
+                                new ArgumentHolder(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);
@@ -482,7 +442,7 @@ public final class CommandManager implements EventListener {
                         );
                         return command.execute(
                                 commandContext,
-                                new CommandArguments(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
+                                new ArgumentHolder(commandContext, Arrays.copyOfRange(content, argsFrom, content.length)));
                     } catch (Throwable e) {
                         callbackChannel.sendMessage(commandSettings.getTranslations().getTranslation("error_executing")).queue();
                         logger.error("Error encountered while executing command '" + command.getName() + "' ; ", e);

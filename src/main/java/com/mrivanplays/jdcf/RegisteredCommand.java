@@ -1,10 +1,6 @@
 package com.mrivanplays.jdcf;
 
-import com.mrivanplays.jdcf.args.CommandArguments;
-
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
+import com.mrivanplays.jdcf.args.ArgumentHolder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,7 +102,7 @@ public final class RegisteredCommand {
      * @param args    arguments
      * @return command execution success
      */
-    public boolean execute(CommandExecutionContext context, CommandArguments args) {
+    public boolean execute(CommandExecutionContext context, ArgumentHolder args) {
         return command.execute(context, args);
     }
 }

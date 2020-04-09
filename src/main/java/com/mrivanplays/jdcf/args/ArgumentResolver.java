@@ -1,28 +1,18 @@
 package com.mrivanplays.jdcf.args;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.function.Function;
 
-import java.util.function.Consumer;
+public interface ArgumentResolver<T, P> {
 
-/**
- * Represents a argument resolver which resolves a single argument into a type specified.
- *
- * <p>This is a functional interface whose abstract method is {@link #resolve(ArgumentResolverContext)}
- *
- * @param <T> resolved to type
- */
-@FunctionalInterface
-public interface ArgumentResolver<T> {
+    default ArgumentParsingState<P> checkIfArgumentEmpty(ArgumentResolverContext context,
+                                                         Function<ArgumentResolverContext, ArgumentParsingState<P>> proceed) {
+        if (context.getArgument().isEmpty()) {
+            return ArgumentParsingStates.notPresent();
+        }
+        return proceed.apply(context);
+    }
 
-    /**
-     * Resolves the input argument into the type this resolver resolves. This method may throw exceptions which will
-     * trigger {@link RestArgumentAction#orElse(Consumer)} with {@link FailReason} of
-     * <code>ARGUMENT_PARSED_NOT_TYPE</code> if used upon {@link CommandArguments#next(ArgumentResolver)}.
-     *
-     * @param context context containing data about the argument
-     * @return a resolved argument, or null.
-     */
-    @Nullable
-    T resolve(@NotNull ArgumentResolverContext context) throws Exception;
+    ArgumentParsingState<P> tryParse(ArgumentResolverContext resolverContext);
+
+    T parseNoTests(ArgumentResolverContext context);
 }

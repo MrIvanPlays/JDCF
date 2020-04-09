@@ -2,8 +2,8 @@ package com.mrivanplays.jdcf.builtin;
 
 import com.mrivanplays.jdcf.CommandData;
 import com.mrivanplays.jdcf.CommandExecutionContext;
-import com.mrivanplays.jdcf.args.FailReason;
-import com.mrivanplays.jdcf.args.FailReasonHandler;
+import com.mrivanplays.jdcf.args.ArgumentParseGlobalFailHandler;
+import com.mrivanplays.jdcf.args.ArgumentParsingState;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
 import com.mrivanplays.jdcf.util.Utils;
@@ -18,15 +18,13 @@ import java.util.function.Supplier;
 
 /**
  * Represents the default fail reason handler.
- * @see FailReasonHandler
+ *
+ * @see ArgumentParseGlobalFailHandler
  */
-public class DefaultFailReasonHandler implements FailReasonHandler {
+public class DefaultFailReasonHandler implements ArgumentParseGlobalFailHandler {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void handleFailReason(@NotNull CommandExecutionContext context, @NotNull FailReason failReason, @Nullable String argument) {
+    public void handleGlobalFail(@NotNull CommandExecutionContext context, @NotNull ArgumentParsingState<?> parsingState, @Nullable String argument, int argumentPosition) {
         CommandData commandData = context.getCommandData();
         CommandSettings settings = context.getCommandManagerCreator().getSettings();
         Translations translations = settings.getTranslations();
