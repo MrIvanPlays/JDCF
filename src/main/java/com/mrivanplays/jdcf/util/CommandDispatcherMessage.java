@@ -19,6 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+@Deprecated
 public final class CommandDispatcherMessage extends AbstractMessage {
 
     private JDA jda;

@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -171,9 +172,9 @@ public class CommandHelp extends Command {
                 EmbedBuilder helpCommandEmbed = Utils.setAuthor(settings.getHelpCommandEmbed(), context.getAuthor());
                 helpCommandEmbed.addField(getKeyword(settings, "usage"), "`" + prefix + command.getUsage() + "`", true);
                 helpCommandEmbed.addField(getKeyword(settings, "description"), command.getDescription(), true);
-                if (command.getAliases() != null) { // todo: when deprecation removal happens, this check will be redundant
-                    helpCommandEmbed.addField(getKeyword(settings, "aliases"), String.join(", ", command.getAliases()), true);
-                }
+                String[] names = command.getAliases();
+                String aliasesInlined = String.join(", ", Arrays.copyOfRange(names, 1, names.length));
+                helpCommandEmbed.addField(getKeyword(settings, "aliases"), String.join(", ", aliasesInlined), true);
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
         });

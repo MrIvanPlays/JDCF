@@ -1,5 +1,6 @@
 package com.mrivanplays.jdcf;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -10,15 +11,17 @@ public final class CommandData {
     private String usage;
     private String description;
     private String[] names;
+    private boolean guildOnly;
 
-    public CommandData(@Nullable String usage, @Nullable String description, String[] names) {
+    public CommandData(@Nullable String usage, @Nullable String description, @NotNull String[] names, boolean guildOnly) {
         this.usage = usage;
         this.description = description;
         this.names = names;
+        this.guildOnly = guildOnly;
     }
 
     /**
-     * Returns the usage of the command, if present.
+     * Returns the usage of the {@link Command} this command data is holding, if present.
      *
      * @return usage
      */
@@ -28,7 +31,7 @@ public final class CommandData {
     }
 
     /**
-     * Returns the description of the command, if present.
+     * Returns the description of the {@link Command} this command data is holding, if present.
      *
      * @return description
      */
@@ -37,8 +40,22 @@ public final class CommandData {
         return description;
     }
 
-    // todo: i still don't wanna javadoc this, perhaps after deprecation removal?
+    /**
+     * Returns the name(s) of the {@link Command} this command data is holding.
+     *
+     * @return name(s)
+     */
+    @NotNull
     public String[] getNames() {
         return names;
+    }
+
+    /**
+     * Returns whenever the {@link Command} this command data is holding is guild only.
+     *
+     * @return <code>true</code> if guild only, <code>false</code> otherwise
+     */
+    public boolean isGuildOnly() {
+        return guildOnly;
     }
 }

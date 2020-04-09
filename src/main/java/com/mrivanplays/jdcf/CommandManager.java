@@ -109,26 +109,25 @@ public final class CommandManager implements EventListener {
      */
     public void registerCommand(@NotNull Command command) {
         Objects.requireNonNull(command, "Command registered cannot be null");
-        String[] aliases = null;
+        String[] aliases;
         String description = null;
         String usage = null;
-        boolean guildOnly;
+        boolean guildOnly = false;
         Class<? extends Command> commandClass = command.getClass();
         CommandAliases annoAliases = commandClass.getAnnotation(CommandAliases.class);
-        if (annoAliases != null) {
-            String value = annoAliases.value();
-            boolean hasCharacter = false;
-            for (char c : value.toCharArray()) {
-                if (c == '|') {
-                    hasCharacter = true;
-                    break;
-                }
+        Objects.requireNonNull(annoAliases, "Command aliases (names) not specified.");
+        String annoValue = annoAliases.value();
+        boolean hasCharacter = false;
+        for (char c : annoValue.toCharArray()) {
+            if (c == '|') {
+                hasCharacter = true;
+                break;
             }
-            if (hasCharacter) {
-                aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
-            } else {
-                aliases = new String[]{value};
-            }
+        }
+        if (hasCharacter) {
+            aliases = ALIAS_SPLIT_PATTERN.split(annoAliases.value());
+        } else {
+            aliases = new String[]{annoValue};
         }
         CommandDescription annoDescription = commandClass.getAnnotation(CommandDescription.class);
         if (annoDescription != null) {
@@ -141,8 +140,6 @@ public final class CommandManager implements EventListener {
         MarkGuildOnly guildOnlyMark = commandClass.getAnnotation(MarkGuildOnly.class);
         if (guildOnlyMark != null) {
             guildOnly = true;
-        } else {
-            guildOnly = command.isGuildOnly();
         }
         registerCommand(new RegisteredCommand(command, usage, description, aliases, guildOnly));
     }
@@ -235,14 +232,8 @@ public final class CommandManager implements EventListener {
     public Optional<RegisteredCommand> getCommand(@NotNull String alias) {
         Objects.requireNonNull(alias, "alias");
         Utils.checkState(alias.length() != 0, "empty alias");
-        Optional<RegisteredCommand> nameSearch = commands.stream()
-                .filter(command -> command.getDirectCommandName() != null && command.getDirectCommandName().equalsIgnoreCase(alias))
+        return commands.stream().filter(command -> Arrays.stream(command.getAliases()).anyMatch(al -> al.equalsIgnoreCase(alias)))
                 .findFirst();
-        if (nameSearch.isPresent()) {
-            return nameSearch;
-        } else {
-            return commands.stream().filter(command -> command.getAliases() != null && Arrays.stream(command.getAliases()).anyMatch(al -> al.equalsIgnoreCase(alias))).findFirst();
-        }
     }
 
     /**
@@ -255,10 +246,7 @@ public final class CommandManager implements EventListener {
     public List<RegisteredCommand> findCommand(@NotNull String startsWith) {
         Objects.requireNonNull(startsWith, "startsWith");
         return commands.stream().filter(command ->
-                command.getDirectCommandName() != null
-                        ? command.getDirectCommandName().toLowerCase().startsWith(startsWith.toLowerCase())
-                        : command.getAliases() != null
-                        && Arrays.stream(command.getAliases()).anyMatch(alias -> alias.toLowerCase().startsWith(startsWith.toLowerCase()))
+                Arrays.stream(command.getAliases()).anyMatch(alias -> alias.toLowerCase().startsWith(startsWith.toLowerCase()))
         ).collect(Collectors.toList());
     }
 
@@ -273,7 +261,10 @@ public final class CommandManager implements EventListener {
      * @param member      the member for which the command is going to watch parameters
      * @param commandLine the command line to execute
      * @return execution success state
+     * @deprecated command dispatchers can't really be a thing, especially in JDA's ecosystem. If you want to dispatch
+     * commands manually, do it, but JDCF won't maintain such a breakable method.
      */
+    @Deprecated
     public boolean dispatchCommand(@NotNull JDA jda, @NotNull Guild guild, @NotNull TextChannel channel, @NotNull Member member, @NotNull String commandLine) {
         Objects.requireNonNull(jda, "jda");
         Objects.requireNonNull(guild, "guild");

@@ -22,10 +22,6 @@ public final class RegisteredCommand {
     private final String[] aliases;
     private final boolean guildOnly;
 
-    public RegisteredCommand(Command command, String usage, String description, String[] aliases) {
-        this(command, usage, description, aliases, false);
-    }
-
     public RegisteredCommand(Command command, String usage, String description, String[] aliases, boolean guildOnly) {
         this.command = command;
         this.usage = usage;
@@ -39,29 +35,9 @@ public final class RegisteredCommand {
      *
      * @return first alias specified
      */
-    // first alias specified or if command name is specified return it
     @NotNull
     public String getName() {
-        String specifiedName = command.getName();
-        return specifiedName != null ? specifiedName : aliases[0];
-    }
-
-    String getDirectCommandName() {
-        // in order to keep backwards compatibility with CommandManager#getCommand
-        // this will be removed when the deprecations get removed
-        return command.getName();
-    }
-
-    /**
-     * Returns all the permissions of the command (if specified)
-     *
-     * @return permissions
-     * @deprecated JDCF doesn't store permissions anymore.
-     */
-    @Nullable
-    @Deprecated
-    public Permission[] getPermissions() {
-        return command.getPermissions();
+        return aliases[0];
     }
 
     /**
@@ -85,11 +61,11 @@ public final class RegisteredCommand {
     }
 
     /**
-     * Returns the aliases of the command (if specified)
+     * Returns the aliases (names) of the command (if specified)
      *
      * @return aliases
      */
-    @Nullable
+    @NotNull
     public String[] getAliases() {
         return aliases;
     }
@@ -101,7 +77,7 @@ public final class RegisteredCommand {
      */
     @NotNull
     public CommandData getDataAsCommandData() {
-        return new CommandData(usage, description, aliases);
+        return new CommandData(usage, description, aliases, guildOnly);
     }
 
     /**

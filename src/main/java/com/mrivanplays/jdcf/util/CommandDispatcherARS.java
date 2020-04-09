@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+@Deprecated
 public final class CommandDispatcherARS<T> implements AuditableRestAction<T> {
 
     private JDA jda;

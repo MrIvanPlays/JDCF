@@ -123,20 +123,6 @@ public interface PrefixHandler {
     /**
      * Gets the prefix of which the bot is going to listen for commands in DMs of this user.
      *
-     * @param selfUser bot user instance
-     * @param user the user who wants to execute commands in DMs
-     * @return prefix of guild or the default one if not present
-     * @deprecated first parameter not needed anymore. Expected removal: v1.0.6-SNAPSHOT
-     */
-    @Deprecated
-    @NotNull
-    default String getPrefix(User selfUser, User user) {
-        return getPrefix(user);
-    }
-
-    /**
-     * Gets the prefix of which the bot is going to listen for commands in DMs of this user.
-     *
      * @param user the user who wants to execute commands in DMs
      * @return prefix of guild
      */
