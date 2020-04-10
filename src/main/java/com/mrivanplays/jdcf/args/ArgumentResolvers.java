@@ -1,16 +1,19 @@
 package com.mrivanplays.jdcf.args;
 
+import com.mrivanplays.jdcf.args.objects.Mention;
+import com.mrivanplays.jdcf.args.objects.ObjectFailData;
+
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 /**
  * A utility class containing the default argument resolvers.
  */
+// todo: more fine checks for object name search
 public final class ArgumentResolvers {
 
     public static ArgumentResolver<Integer, Object> INTEGER = new ArgumentResolver<Integer, Object>() {
@@ -52,115 +55,202 @@ public final class ArgumentResolvers {
         }
     };
 
-    public static ArgumentResolver<User, Object> USER_MENTION = new ArgumentResolver<User, Object>() {
-
-        private final Pattern UM_PATTERN = Pattern.compile("<@!?(\\d{17,20})>");
-
+    public static ArgumentResolver<Long, Object> LONG = new ArgumentResolver<Long, Object>() {
         @Override
-        public ArgumentResolverResult<User, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<Long, Object> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, proceedContext -> {
-                Matcher matcher = UM_PATTERN.matcher(context.getArgument());
-                if (matcher.matches()) {
-                    User user = context.getJda().getUserById(matcher.group(1));
-                    return user == null ?
-                            ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition()) :
-                            ArgumentResolverResults.success(user);
-                } else {
-                    return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition());
+                try {
+                    return ArgumentResolverResults.success(Long.parseLong(context.getArgument()));
+                } catch (NumberFormatException e) {
+                    return ArgumentResolverResults.valueNotType(Long.class, context.getArgumentPosition());
                 }
             });
         }
     };
 
-    public static ArgumentResolver<User, Object> USER_ID = new ArgumentResolver<User, Object>() {
+    public static ArgumentResolver<String, Object> STRING = new ArgumentResolver<String, Object>() {
         @Override
-        public ArgumentResolverResult<User, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<String, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> ArgumentResolverResults.success(proceedContext.getArgument()));
+        }
+    };
+
+    public static ArgumentResolver<Mention, ObjectFailData> MENTION = new ArgumentResolver<Mention, ObjectFailData>() {
+        @Override
+        public ArgumentResolverResult<Mention, ObjectFailData> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
+                Mention mention = Mention.parse(proceedContext.getArgument(), proceedContext.getJda(), proceedContext.getGuild());
+                if (mention == null) {
+                    return ArgumentResolverResults.valueNotPresent(ObjectFailData.OBJECT_NOT_FOUND);
+                }
+                return ArgumentResolverResults.success(mention);
+            });
+        }
+    };
+
+    public static ArgumentResolver<User, ObjectFailData> USER_MENTION = context -> {
+        ArgumentResolverResult<Mention, ObjectFailData> mentionResult = MENTION.parse(context);
+        Optional<Mention> mentionOptional = mentionResult.getValue();
+        if (mentionOptional.isPresent()) {
+            Mention mention = mentionOptional.get();
+            if (mention.isUserMention()) {
+                return mention.toUser() == null ?
+                        ArgumentResolverResults.valueNotPresent(ObjectFailData.OBJECT_NOT_FOUND) :
+                        ArgumentResolverResults.success(mention.toUser());
+            } else {
+                return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
+            }
+        } else {
+            return ArgumentResolverResults.valueNotPresent(mentionResult.getFailReason().getAdditionalData());
+        }
+    };
+
+    public static ArgumentResolver<User, ObjectFailData> USER_NAME = new ArgumentResolver<User, ObjectFailData>() {
+        @Override
+        public ArgumentResolverResult<User, ObjectFailData> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
+                List<User> users = proceedContext.getJda().getUsersByName(proceedContext.getArgument(), true);
+                if (users.isEmpty()) {
+                    return ArgumentResolverResults.valueNotPresent(ObjectFailData.OBJECT_NOT_FOUND);
+                }
+                return ArgumentResolverResults.success(users.get(0));
+            });
+        }
+    };
+
+    public static ArgumentResolver<User, ObjectFailData> USER_ID = new ArgumentResolver<User, ObjectFailData>() {
+        @Override
+        public ArgumentResolverResult<User, ObjectFailData> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, proceedContext -> {
                 try {
                     User user = context.getJda().getUserById(Long.parseLong(context.getArgument()));
                     return user == null ?
-                            ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition()) :
+                            ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED) :
                             ArgumentResolverResults.success(user);
                 } catch (NumberFormatException e) {
-                    return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition());
+                    return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
                 }
             });
         }
     };
 
-    public static ArgumentResolver<User, Object> USER = context -> {
-        ArgumentResolverResult<User, Object> mention = USER_MENTION.parse(context);
-        if (mention.getValue().isPresent()) {
-            return mention;
+    public static ArgumentResolver<User, ObjectFailData> USER = context -> {
+        ArgumentResolverResult<User, ObjectFailData> name = USER_NAME.parse(context);
+        if (name.getValue().isPresent()) {
+            return name;
         } else {
-            return USER_ID.parse(context);
+            ArgumentResolverResult<User, ObjectFailData> mention = USER_MENTION.parse(context);
+            if (mention.getValue().isPresent()) {
+                return name;
+            } else {
+                return USER_ID.parse(context);
+            }
         }
     };
 
-    public static ArgumentResolver<Role, Object> ROLE_NAME = new ArgumentResolver<Role, Object>() {
+    public static ArgumentResolver<Role, ObjectFailData> ROLE_MENTION = context -> {
+        ArgumentResolverResult<Mention, ObjectFailData> mentionResult = MENTION.parse(context);
+        Optional<Mention> mentionOptional = mentionResult.getValue();
+        if (mentionOptional.isPresent()) {
+            Mention mention = mentionOptional.get();
+            if (mention.isRoleMention()) {
+                return mention.toRole() == null ?
+                        ArgumentResolverResults.valueNotPresent(ObjectFailData.OBJECT_NOT_FOUND) :
+                        ArgumentResolverResults.success(mention.toRole());
+            } else {
+                return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
+            }
+        } else {
+            return ArgumentResolverResults.valueNotPresent(mentionResult.getFailReason().getAdditionalData());
+        }
+    };
+
+    public static ArgumentResolver<Role, ObjectFailData> ROLE_NAME = new ArgumentResolver<Role, ObjectFailData>() {
         @Override
-        public ArgumentResolverResult<Role, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<Role, ObjectFailData> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, proceedContext -> {
                 if (proceedContext.getGuild() == null) {
                     return ArgumentResolverResults.commandNotExecutedInGuild();
                 }
                 List<Role> roles = proceedContext.getGuild().getRolesByName(proceedContext.getArgument(), true);
                 if (roles.isEmpty()) {
-                    return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
+                    return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_FOUND);
                 }
                 return ArgumentResolverResults.success(roles.get(0));
             });
         }
     };
 
-    public static ArgumentResolver<Role, Object> ROLE_ID = new ArgumentResolver<Role, Object>() {
+    public static ArgumentResolver<Role, ObjectFailData> ROLE_ID = new ArgumentResolver<Role, ObjectFailData>() {
         @Override
-        public ArgumentResolverResult<Role, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<Role, ObjectFailData> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, proceedContext -> {
-               if (proceedContext.getGuild() == null) {
-                   return ArgumentResolverResults.commandNotExecutedInGuild();
-               }
-               try {
-                   Role role = proceedContext.getGuild().getRoleById(Long.parseLong(context.getArgument()));
-                   if (role == null) {
-                       return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
-                   }
-                   return ArgumentResolverResults.success(role);
-               } catch (NumberFormatException e) {
-                   return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
-               }
+                if (proceedContext.getGuild() == null) {
+                    return ArgumentResolverResults.commandNotExecutedInGuild();
+                }
+                try {
+                    Role role = proceedContext.getGuild().getRoleById(Long.parseLong(context.getArgument()));
+                    if (role == null) {
+                        return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_FOUND);
+                    }
+                    return ArgumentResolverResults.success(role);
+                } catch (NumberFormatException e) {
+                    return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
+                }
             });
         }
     };
 
-    public static ArgumentResolver<Role, Object> ROLE = context -> {
-        ArgumentResolverResult<Role, Object> roleName = ROLE_NAME.parse(context);
+    public static ArgumentResolver<Role, ObjectFailData> ROLE = context -> {
+        ArgumentResolverResult<Role, ObjectFailData> roleName = ROLE_NAME.parse(context);
         if (roleName.getValue().isPresent()) {
             return roleName;
         } else {
-            return ROLE_ID.parse(context);
+            ArgumentResolverResult<Role, ObjectFailData> roleMention = ROLE_MENTION.parse(context);
+            if (roleMention.getValue().isPresent()) {
+                return roleMention;
+            } else {
+                return ROLE_ID.parse(context);
+            }
         }
     };
 
-    public static ArgumentResolver<TextChannel, Object> CHANNEL_NAME = new ArgumentResolver<TextChannel, Object>() {
+    public static ArgumentResolver<TextChannel, ObjectFailData> CHANNEL_MENTION = context -> {
+        ArgumentResolverResult<Mention, ObjectFailData> mentionResult = MENTION.parse(context);
+        Optional<Mention> mentionOptional = mentionResult.getValue();
+        if (mentionOptional.isPresent()) {
+            Mention mention = mentionOptional.get();
+            if (mention.isChannelMention()) {
+                return mention.toChannel() == null ?
+                        ArgumentResolverResults.valueNotPresent(ObjectFailData.OBJECT_NOT_FOUND) :
+                        ArgumentResolverResults.success(mention.toChannel());
+            } else {
+                return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
+            }
+        } else {
+            return ArgumentResolverResults.valueNotPresent(mentionResult.getFailReason().getAdditionalData());
+        }
+    };
+
+    public static ArgumentResolver<TextChannel, ObjectFailData> CHANNEL_NAME = new ArgumentResolver<TextChannel, ObjectFailData>() {
         @Override
-        public ArgumentResolverResult<TextChannel, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<TextChannel, ObjectFailData> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, proceedContext -> {
                 if (proceedContext.getGuild() == null) {
                     return ArgumentResolverResults.commandNotExecutedInGuild();
                 }
                 List<TextChannel> channels = proceedContext.getGuild().getTextChannelsByName(context.getArgument(), true);
                 if (channels.isEmpty()) {
-                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
+                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_FOUND);
                 }
                 return ArgumentResolverResults.success(channels.get(0));
             });
         }
     };
 
-    public static ArgumentResolver<TextChannel, Object> CHANNEL_ID = new ArgumentResolver<TextChannel, Object>() {
+    public static ArgumentResolver<TextChannel, ObjectFailData> CHANNEL_ID = new ArgumentResolver<TextChannel, ObjectFailData>() {
         @Override
-        public ArgumentResolverResult<TextChannel, Object> parse(ArgumentResolveContext context) {
+        public ArgumentResolverResult<TextChannel, ObjectFailData> parse(ArgumentResolveContext context) {
             return checkIfArgumentEmpty(context, resolverContext -> {
                 if (resolverContext.getGuild() == null) {
                     return ArgumentResolverResults.commandNotExecutedInGuild();
@@ -168,22 +258,27 @@ public final class ArgumentResolvers {
                 try {
                     TextChannel channel = resolverContext.getGuild().getTextChannelById(Long.parseLong(context.getArgument()));
                     if (channel == null) {
-                        return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
+                        return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_FOUND);
                     }
                     return ArgumentResolverResults.success(channel);
                 } catch (NumberFormatException e) {
-                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
+                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition(), ObjectFailData.OBJECT_NOT_TYPE_ASKED);
                 }
             });
         }
     };
 
-    public static ArgumentResolver<TextChannel, Object> CHANNEL = context -> {
-        ArgumentResolverResult<TextChannel, Object> channelName = CHANNEL_NAME.parse(context);
+    public static ArgumentResolver<TextChannel, ObjectFailData> CHANNEL = context -> {
+        ArgumentResolverResult<TextChannel, ObjectFailData> channelName = CHANNEL_NAME.parse(context);
         if (channelName.getValue().isPresent()) {
             return channelName;
         } else {
-            return CHANNEL_ID.parse(context);
+            ArgumentResolverResult<TextChannel, ObjectFailData> channelMention = CHANNEL_MENTION.parse(context);
+            if (channelMention.getValue().isPresent()) {
+                return channelMention;
+            } else {
+                return CHANNEL_ID.parse(context);
+            }
         }
     };
 }

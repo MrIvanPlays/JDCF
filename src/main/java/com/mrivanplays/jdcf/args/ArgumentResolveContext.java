@@ -1,5 +1,7 @@
 package com.mrivanplays.jdcf.args;
 
+import com.mrivanplays.jdcf.MayBeEmpty;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -28,6 +30,7 @@ public final class ArgumentResolveContext {
      *
      * @return argument
      */
+    @MayBeEmpty
     public String getArgument() {
         return argument;
     }

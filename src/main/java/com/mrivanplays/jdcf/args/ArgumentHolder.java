@@ -1,6 +1,8 @@
 package com.mrivanplays.jdcf.args;
 
 import com.mrivanplays.jdcf.CommandExecutionContext;
+import com.mrivanplays.jdcf.MayBeEmpty;
+import com.mrivanplays.jdcf.args.chain.ArgumentChain;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -41,6 +43,11 @@ public class ArgumentHolder {
     }
 
     @NotNull
+    public ArgumentChain newArgumentChain() {
+        return new ArgumentChain(this);
+    }
+
+    @NotNull
     public <T, D> Argument<T, D> next(@NotNull ArgumentResolver<T, D> argumentResolver) {
         Objects.requireNonNull(argumentResolver, "argumentResolver");
         argumentsTookCount++;
@@ -64,28 +71,29 @@ public class ArgumentHolder {
         }
     }
 
+    @NotNull
     public Argument<String, Object> nextString() {
-        return next(new ArgumentResolver<String, Object>() {
-            @Override
-            public ArgumentResolverResult<String, Object> parse(ArgumentResolveContext context) {
-                return checkIfArgumentEmpty(
-                        context,
-                        proceedContext -> ArgumentResolverResults.success(proceedContext.getArgument())
-                );
-            }
-        });
+        return next(ArgumentResolvers.STRING);
     }
 
+    @NotNull
     public Argument<Integer, Object> nextInt() {
         return next(ArgumentResolvers.INTEGER);
     }
 
+    @NotNull
     public Argument<Double, Object> nextDouble() {
         return next(ArgumentResolvers.DOUBLE);
     }
 
+    @NotNull
     public Argument<Float, Object> nextFloat() {
         return next(ArgumentResolvers.FLOAT);
+    }
+
+    @NotNull
+    public Argument<Long, Object> nextLong() {
+        return next(ArgumentResolvers.LONG);
     }
 
     public Optional<String> get(int argumentNumber) {
@@ -93,6 +101,29 @@ public class ArgumentHolder {
             return Optional.of(args.get(argumentNumber));
         } catch (IndexOutOfBoundsException e) {
             return Optional.empty();
+        }
+    }
+
+    @NotNull
+    public <T, D> Argument<T, D> getArgument(@NotNull ArgumentResolver<T, D> resolver, int argumentNumber) {
+        Objects.requireNonNull(resolver, "resolver");
+        try {
+            String argument = args.get(argumentNumber);
+            return new Argument<>(
+                    commandContext,
+                    resolver,
+                    argument,
+                    globalFailHandler,
+                    argumentNumber
+            );
+        } catch (IndexOutOfBoundsException e) {
+            return new Argument<>(
+                    commandContext,
+                    resolver,
+                    null,
+                    globalFailHandler,
+                    argumentNumber
+            );
         }
     }
 
@@ -131,5 +162,17 @@ public class ArgumentHolder {
 
     public int size() {
         return args.size();
+    }
+
+    @NotNull
+    @MayBeEmpty
+    public String[] getRawArgumentsArray() {
+        return args.toArray(new String[0]);
+    }
+
+    @NotNull
+    @MayBeEmpty
+    public List<String> getRawArgumentsList() {
+        return Collections.unmodifiableList(args);
     }
 }

@@ -31,18 +31,21 @@ public final class Argument<T, D> {
         this.argumentPosition = argumentPosition;
     }
 
+    @NotNull
     @CheckReturnValue
     public Argument<T, D> ifPresent(@NotNull Consumer<T> onSuccess) {
         this.onSuccess = Objects.requireNonNull(onSuccess, "onSuccess");
         return this;
     }
 
+    @NotNull
     @CheckReturnValue
     public Argument<T, D> ifNotPresent(@Nullable Consumer<ArgumentResolveFailContext<D>> onFail) {
         this.onFail = onFail;
         return this;
     }
 
+    @NotNull
     public ArgumentExecutionResult<T, D> execute() {
         Objects.requireNonNull(onSuccess, "onSuccess");
         String argument = rawArgument == null ? "" : rawArgument;
