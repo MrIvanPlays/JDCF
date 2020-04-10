@@ -3,7 +3,7 @@ package com.mrivanplays.jdcf.builtin;
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.PermissionCheckContext;
-import com.mrivanplays.jdcf.args.CommandArguments;
+import com.mrivanplays.jdcf.args.ArgumentHolder;
 import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.data.MarkGuildOnly;
 
@@ -22,9 +22,9 @@ import java.util.Objects;
 // no data annotations present as this shouldn't be showed in help command
 @CommandAliases("shutdown")
 @MarkGuildOnly
-public class CommandShutdown extends Command {
+public class CommandShutdown implements Command {
 
-    private String botOwnerId;
+    private final String botOwnerId;
 
     /**
      * Creates a new shutdown command instance
@@ -47,7 +47,7 @@ public class CommandShutdown extends Command {
      * {@inheritDoc}
      */
     @Override
-    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull ArgumentHolder args) {
         context.getJda().shutdownNow();
         context.getJda().getHttpClient().connectionPool().evictAll();
         context.getJda().getHttpClient().dispatcher().executorService().shutdown();

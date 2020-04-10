@@ -5,8 +5,9 @@ import com.mrivanplays.jdcf.CommandExecutionContext;
 import com.mrivanplays.jdcf.CommandManager;
 import com.mrivanplays.jdcf.PermissionCheckContext;
 import com.mrivanplays.jdcf.RegisteredCommand;
-import com.mrivanplays.jdcf.args.CommandArguments;
-import com.mrivanplays.jdcf.args.FailReason;
+import com.mrivanplays.jdcf.args.ArgumentHolder;
+import com.mrivanplays.jdcf.args.ArgumentResolveFailure;
+import com.mrivanplays.jdcf.args.ArgumentResolveFailures;
 import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.settings.CommandSettings;
 import com.mrivanplays.jdcf.translation.Translations;
@@ -29,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @CommandAliases("help")
-public class CommandHelp extends Command {
+public class CommandHelp implements Command {
 
     private final EventWaiter eventWaiter;
     private final String arrowRight = "\u27A1";
@@ -41,7 +42,7 @@ public class CommandHelp extends Command {
     }
 
     @Override
-    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull ArgumentHolder args) {
         CommandManager commandManager = context.getCommandManagerCreator();
         CommandSettings settings = commandManager.getSettings();
         if (settings.getHelpCommandEmbed() == null) {
@@ -51,9 +52,6 @@ public class CommandHelp extends Command {
             return true;
         }
         Translations translations = settings.getTranslations();
-        if (context.isFromDispatcher()) {
-            throw new UnsupportedOperationException(translations.getTranslation("help_not_executed"));
-        }
         String pageName = translations.getTranslation("help_page_specify").split(" ")[0];
         User author = context.getAuthor();
         MessageChannel channel = context.getChannel();
@@ -115,8 +113,10 @@ public class CommandHelp extends Command {
                     }
                 }
             });
-        }).orElse((failReason, parsed) -> {
-            if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
+        }).ifNotPresent(failContext -> {
+            String parsed = failContext.getRawArgument();
+            ArgumentResolveFailure<Object> failReason = failContext.getFailureReason();
+            if (ArgumentResolveFailures.isNotPresent(failReason)) {
                 channel.sendMessage(paginator.getPage(1).build()).queue(message -> {
                     if (!context.wasExecutedInGuild()) {
                         return;
@@ -139,7 +139,7 @@ public class CommandHelp extends Command {
                 });
                 return;
             }
-            if (failReason == FailReason.ARGUMENT_PARSED_NOT_TYPE) {
+            if (ArgumentResolveFailures.isNotType(failReason)) {
                 RegisteredCommand command = commandManager.getCommand(parsed).orElse(null);
                 String prefix = settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong());
                 if (command == null) {
@@ -177,7 +177,7 @@ public class CommandHelp extends Command {
                 helpCommandEmbed.addField(getKeyword(settings, "aliases"), String.join(", ", aliasesInlined), true);
                 channel.sendMessage(helpCommandEmbed.build()).queue();
             }
-        });
+        }).execute();
         System.gc();
         return true;
     }

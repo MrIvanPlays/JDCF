@@ -2,17 +2,18 @@ package com.mrivanplays.jdcf.args;
 
 import java.util.function.Function;
 
-public interface ArgumentResolver<T, P> {
+@FunctionalInterface
+public interface ArgumentResolver<T, D> {
 
-    default ArgumentParsingState<P> checkIfArgumentEmpty(ArgumentResolverContext context,
-                                                         Function<ArgumentResolverContext, ArgumentParsingState<P>> proceed) {
+    default ArgumentResolverResult<T, D> checkIfArgumentEmpty(
+            ArgumentResolveContext context,
+            Function<ArgumentResolveContext, ArgumentResolverResult<T, D>> proceed
+    ) {
         if (context.getArgument().isEmpty()) {
-            return ArgumentParsingStates.notPresent();
+            return ArgumentResolverResults.valueNotPresent();
         }
         return proceed.apply(context);
     }
 
-    ArgumentParsingState<P> tryParse(ArgumentResolverContext resolverContext);
-
-    T parseNoTests(ArgumentResolverContext context);
+    ArgumentResolverResult<T, D> parse(ArgumentResolveContext context);
 }

@@ -4,8 +4,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,58 +15,40 @@ public final class ArgumentResolvers {
 
     public static ArgumentResolver<Integer, Object> INTEGER = new ArgumentResolver<Integer, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
+        public ArgumentResolverResult<Integer, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
                 try {
-                    Integer.parseInt(resolverContext.getArgument());
-                    return ArgumentParsingStates.success();
+                    return ArgumentResolverResults.success(Integer.parseInt(proceedContext.getArgument()));
                 } catch (NumberFormatException e) {
-                    return ArgumentParsingStates.notType();
+                    return ArgumentResolverResults.valueNotType(Integer.class, context.getArgumentPosition());
                 }
             });
-        }
-
-        @Override
-        public Integer parseNoTests(ArgumentResolverContext context) {
-            return Integer.parseInt(context.getArgument());
         }
     };
 
     public static ArgumentResolver<Double, Object> DOUBLE = new ArgumentResolver<Double, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
+        public ArgumentResolverResult<Double, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
                 try {
-                    Double.parseDouble(context.getArgument());
-                    return ArgumentParsingStates.success();
+                    return ArgumentResolverResults.success(Double.parseDouble(proceedContext.getArgument()));
                 } catch (NumberFormatException e) {
-                    return ArgumentParsingStates.notType();
+                    return ArgumentResolverResults.valueNotType(Double.class, context.getArgumentPosition());
                 }
             });
-        }
-
-        @Override
-        public Double parseNoTests(ArgumentResolverContext context) {
-            return Double.parseDouble(context.getArgument());
         }
     };
 
     public static ArgumentResolver<Float, Object> FLOAT = new ArgumentResolver<Float, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
+        public ArgumentResolverResult<Float, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
                 try {
-                    Float.parseFloat(resolverContext.getArgument());
-                    return ArgumentParsingStates.success();
+                    return ArgumentResolverResults.success(Float.parseFloat(proceedContext.getArgument()));
                 } catch (NumberFormatException e) {
-                    return ArgumentParsingStates.notType();
+                    return ArgumentResolverResults.valueNotType(Float.class, context.getArgumentPosition());
                 }
             });
-        }
-
-        @Override
-        public Float parseNoTests(ArgumentResolverContext context) {
-            return null;
         }
     };
 
@@ -77,190 +57,133 @@ public final class ArgumentResolvers {
         private final Pattern UM_PATTERN = Pattern.compile("<@!?(\\d{17,20})>");
 
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
+        public ArgumentResolverResult<User, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
                 Matcher matcher = UM_PATTERN.matcher(context.getArgument());
                 if (matcher.matches()) {
                     User user = context.getJda().getUserById(matcher.group(1));
-                    return user == null ? ArgumentParsingStates.notType() : ArgumentParsingStates.success();
+                    return user == null ?
+                            ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition()) :
+                            ArgumentResolverResults.success(user);
                 } else {
-                    return ArgumentParsingStates.notType();
+                    return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition());
                 }
             });
-        }
-
-        @Override
-        public User parseNoTests(@NotNull ArgumentResolverContext context) {
-            Matcher matcher = UM_PATTERN.matcher(context.getArgument());
-            return context.getJda().getUserById(matcher.group(1));
         }
     };
 
     public static ArgumentResolver<User, Object> USER_ID = new ArgumentResolver<User, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
+        public ArgumentResolverResult<User, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
                 try {
                     User user = context.getJda().getUserById(Long.parseLong(context.getArgument()));
-                    return user == null ? ArgumentParsingStates.notType() : ArgumentParsingStates.success();
+                    return user == null ?
+                            ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition()) :
+                            ArgumentResolverResults.success(user);
                 } catch (NumberFormatException e) {
-                    return ArgumentParsingStates.notType();
+                    return ArgumentResolverResults.valueNotType(User.class, context.getArgumentPosition());
                 }
             });
         }
-
-        @Override
-        public User parseNoTests(ArgumentResolverContext context) {
-            return null;
-        }
     };
 
-    public static ArgumentResolver<User, Object> USER = new ArgumentResolver<User, Object>() {
-        @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            ArgumentParsingState<Object> mention = USER_MENTION.tryParse(resolverContext);
-            if (mention.isSuccess()) {
-                return mention;
-            } else {
-                return USER_ID.tryParse(resolverContext);
-            }
-        }
-
-        @Override
-        public User parseNoTests(ArgumentResolverContext context) {
-            ArgumentParsingState<Object> mention = USER_MENTION.tryParse(context);
-            return mention.isSuccess() ? USER_MENTION.parseNoTests(context) : USER_ID.parseNoTests(context);
+    public static ArgumentResolver<User, Object> USER = context -> {
+        ArgumentResolverResult<User, Object> mention = USER_MENTION.parse(context);
+        if (mention.getValue().isPresent()) {
+            return mention;
+        } else {
+            return USER_ID.parse(context);
         }
     };
 
     public static ArgumentResolver<Role, Object> ROLE_NAME = new ArgumentResolver<Role, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            if (resolverContext.getArgument().isEmpty()) {
-                return ArgumentParsingStates.notPresent();
-            }
-            if (resolverContext.getGuild() == null) {
-                return ArgumentParsingStates.commandNotExecutedInGuild();
-            }
-            List<Role> roles = resolverContext.getGuild().getRolesByName(resolverContext.getArgument(), true);
-            if (roles.isEmpty()) {
-                return ArgumentParsingStates.typeNotFound(Role.class);
-            }
-            return ArgumentParsingStates.success();
-        }
-
-        @Override
-        public Role parseNoTests(ArgumentResolverContext context) {
-            return context.getGuild().getRolesByName(context.getArgument(), true).get(0);
+        public ArgumentResolverResult<Role, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
+                if (proceedContext.getGuild() == null) {
+                    return ArgumentResolverResults.commandNotExecutedInGuild();
+                }
+                List<Role> roles = proceedContext.getGuild().getRolesByName(proceedContext.getArgument(), true);
+                if (roles.isEmpty()) {
+                    return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
+                }
+                return ArgumentResolverResults.success(roles.get(0));
+            });
         }
     };
 
     public static ArgumentResolver<Role, Object> ROLE_ID = new ArgumentResolver<Role, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
-                if (context.getGuild() == null) {
-                    return ArgumentParsingStates.commandNotExecutedInGuild();
-                }
-                try {
-                    Role role = context.getGuild().getRoleById(Long.parseLong(context.getArgument()));
-                    if (role == null) {
-                        return ArgumentParsingStates.typeNotFound(Role.class);
-                    }
-                    return ArgumentParsingStates.success();
-                } catch (NumberFormatException e) {
-                    return ArgumentParsingStates.notType();
-                }
+        public ArgumentResolverResult<Role, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
+               if (proceedContext.getGuild() == null) {
+                   return ArgumentResolverResults.commandNotExecutedInGuild();
+               }
+               try {
+                   Role role = proceedContext.getGuild().getRoleById(Long.parseLong(context.getArgument()));
+                   if (role == null) {
+                       return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
+                   }
+                   return ArgumentResolverResults.success(role);
+               } catch (NumberFormatException e) {
+                   return ArgumentResolverResults.valueNotType(Role.class, context.getArgumentPosition());
+               }
             });
-        }
-
-        @Override
-        public Role parseNoTests(ArgumentResolverContext context) {
-            return context.getGuild().getRoleById(Long.parseLong(context.getArgument()));
         }
     };
 
-    public static ArgumentResolver<Role, Object> ROLE = new ArgumentResolver<Role, Object>() {
-        @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
-                ArgumentParsingState<Object> roleName = ROLE_NAME.tryParse(context);
-                if (roleName.isSuccess()) {
-                    return roleName;
-                } else {
-                    return ROLE_ID.tryParse(context);
-                }
-            });
-        }
-
-        @Override
-        public Role parseNoTests(ArgumentResolverContext context) {
-            ArgumentParsingState<Object> roleName = ROLE_NAME.tryParse(context);
-            return roleName.isSuccess() ? ROLE_NAME.parseNoTests(context) : ROLE_ID.parseNoTests(context);
+    public static ArgumentResolver<Role, Object> ROLE = context -> {
+        ArgumentResolverResult<Role, Object> roleName = ROLE_NAME.parse(context);
+        if (roleName.getValue().isPresent()) {
+            return roleName;
+        } else {
+            return ROLE_ID.parse(context);
         }
     };
 
     public static ArgumentResolver<TextChannel, Object> CHANNEL_NAME = new ArgumentResolver<TextChannel, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
-                if (context.getGuild() == null) {
-                    return ArgumentParsingStates.commandNotExecutedInGuild();
+        public ArgumentResolverResult<TextChannel, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, proceedContext -> {
+                if (proceedContext.getGuild() == null) {
+                    return ArgumentResolverResults.commandNotExecutedInGuild();
                 }
-                List<TextChannel> channels = context.getGuild().getTextChannelsByName(context.getArgument(), true);
+                List<TextChannel> channels = proceedContext.getGuild().getTextChannelsByName(context.getArgument(), true);
                 if (channels.isEmpty()) {
-                    return ArgumentParsingStates.typeNotFound(TextChannel.class);
+                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
                 }
-                return ArgumentParsingStates.success();
+                return ArgumentResolverResults.success(channels.get(0));
             });
-        }
-
-        @Override
-        public TextChannel parseNoTests(ArgumentResolverContext context) {
-            return context.getGuild().getTextChannelsByName(context.getArgument(), true).get(0);
         }
     };
 
     public static ArgumentResolver<TextChannel, Object> CHANNEL_ID = new ArgumentResolver<TextChannel, Object>() {
         @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            return checkIfArgumentEmpty(resolverContext, context -> {
-               if (context.getGuild() == null) {
-                   return ArgumentParsingStates.commandNotExecutedInGuild();
-               }
-               try {
-                   TextChannel channel = context.getGuild().getTextChannelById(Long.parseLong(context.getArgument()));
-                   if (channel == null) {
-                       return ArgumentParsingStates.typeNotFound(TextChannel.class);
-                   }
-                   return ArgumentParsingStates.success();
-               } catch (NumberFormatException e) {
-                   return ArgumentParsingStates.notType();
-               }
+        public ArgumentResolverResult<TextChannel, Object> parse(ArgumentResolveContext context) {
+            return checkIfArgumentEmpty(context, resolverContext -> {
+                if (resolverContext.getGuild() == null) {
+                    return ArgumentResolverResults.commandNotExecutedInGuild();
+                }
+                try {
+                    TextChannel channel = resolverContext.getGuild().getTextChannelById(Long.parseLong(context.getArgument()));
+                    if (channel == null) {
+                        return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
+                    }
+                    return ArgumentResolverResults.success(channel);
+                } catch (NumberFormatException e) {
+                    return ArgumentResolverResults.valueNotType(TextChannel.class, context.getArgumentPosition());
+                }
             });
-        }
-
-        @Override
-        public TextChannel parseNoTests(ArgumentResolverContext context) {
-            return context.getGuild().getTextChannelById(Long.parseLong(context.getArgument()));
         }
     };
 
-    public static ArgumentResolver<TextChannel, Object> CHANNEL = new ArgumentResolver<TextChannel, Object>() {
-        @Override
-        public ArgumentParsingState<Object> tryParse(ArgumentResolverContext resolverContext) {
-            ArgumentParsingState<Object> channelName = CHANNEL_NAME.tryParse(resolverContext);
-            if (channelName.isSuccess()) {
-                return channelName;
-            } else {
-                return CHANNEL_ID.tryParse(resolverContext);
-            }
-        }
-
-        @Override
-        public TextChannel parseNoTests(ArgumentResolverContext context) {
-            ArgumentParsingState<Object> channelName = CHANNEL_NAME.tryParse(context);
-            return channelName.isSuccess() ? CHANNEL_NAME.parseNoTests(context) : CHANNEL_ID.parseNoTests(context);
+    public static ArgumentResolver<TextChannel, Object> CHANNEL = context -> {
+        ArgumentResolverResult<TextChannel, Object> channelName = CHANNEL_NAME.parse(context);
+        if (channelName.getValue().isPresent()) {
+            return channelName;
+        } else {
+            return CHANNEL_ID.parse(context);
         }
     };
 }

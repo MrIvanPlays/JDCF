@@ -2,8 +2,9 @@ package com.mrivanplays.jdcf.builtin;
 
 import com.mrivanplays.jdcf.Command;
 import com.mrivanplays.jdcf.CommandExecutionContext;
-import com.mrivanplays.jdcf.args.CommandArguments;
-import com.mrivanplays.jdcf.args.FailReason;
+import com.mrivanplays.jdcf.args.ArgumentHolder;
+import com.mrivanplays.jdcf.args.ArgumentResolveFailure;
+import com.mrivanplays.jdcf.args.ArgumentResolveFailures;
 import com.mrivanplays.jdcf.data.CommandAliases;
 import com.mrivanplays.jdcf.data.CommandDescription;
 import com.mrivanplays.jdcf.data.CommandUsage;
@@ -23,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 @CommandUsage("prefix (set [new prefix])")
 @CommandAliases("prefix")
 @MarkGuildOnly
-public class CommandPrefix extends Command {
+public class CommandPrefix implements Command {
 
     @Override
-    public boolean execute(@NotNull CommandExecutionContext context, @NotNull CommandArguments args) {
+    public boolean execute(@NotNull CommandExecutionContext context, @NotNull ArgumentHolder args) {
         CommandSettings settings = context.getCommandManagerCreator().getSettings();
         if (settings.getPrefixCommandEmbed() == null) {
             EmbedBuilder errorEmbed = Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
@@ -35,6 +36,7 @@ public class CommandPrefix extends Command {
             return true;
         }
         Translations translations = settings.getTranslations();
+        // todo: should replace with argument chain when it's done
         args.nextString().ifPresent(subCommand -> {
             if (subCommand.equalsIgnoreCase("set")) {
                 if (!context.getMember().hasPermission(Permission.ADMINISTRATOR)) {
@@ -50,22 +52,24 @@ public class CommandPrefix extends Command {
                             .setGuildPrefix(prefix, context.getGuild().getIdLong());
                     context.getChannel().sendMessage(Utils.setAuthor(settings.getSuccessEmbed(), context.getAuthor())
                             .setDescription(translations.getTranslation("prefix_changed", prefix)).build()).queue();
-                }).orElse(failReason -> {
-                    if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
+                }).ifNotPresent(failContext -> {
+                    ArgumentResolveFailure<Object> failReason = failContext.getFailureReason();
+                    if (ArgumentResolveFailures.isNotPresent(failReason)) {
                         context.getChannel().sendMessage(Utils.setAuthor(settings.getErrorEmbed(), context.getAuthor())
                                 .setDescription(translations.getTranslation("specify_prefix")).build())
                                 .queue(message -> message.delete().queueAfter(15, TimeUnit.SECONDS));
                         context.getMessage().delete().queueAfter(15, TimeUnit.SECONDS);
                     }
-                });
+                }).execute();
             }
-        }).orElse(failReason -> {
-            if (failReason == FailReason.ARGUMENT_NOT_TYPED) {
+        }).ifNotPresent(failContext -> {
+            ArgumentResolveFailure<Object> failReason = failContext.getFailureReason();
+            if (ArgumentResolveFailures.isNotPresent(failReason)) {
                 context.getChannel().sendMessage(Utils.setAuthor(settings.getPrefixCommandEmbed(), context.getAuthor())
                         .setDescription(translations.getTranslation("prefix_is",
                                 settings.getPrefixHandler().getPrefix(context.getGuild().getIdLong()))).build()).queue();
             }
-        });
+        }).execute();
         return true;
     }
 }

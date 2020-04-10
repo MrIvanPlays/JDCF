@@ -19,15 +19,13 @@ public final class CommandExecutionContext {
 
     private final Message message;
     private final String alias;
-    private final boolean fromDispatcher;
     private final CommandData commandData;
     private final CommandManager creator;
 
-    public CommandExecutionContext(@NotNull Message message, @NotNull String alias, boolean fromDispatcher,
+    public CommandExecutionContext(@NotNull Message message, @NotNull String alias,
                                    @NotNull CommandData commandData, @NotNull CommandManager creator) {
         this.message = message;
         this.alias = alias;
-        this.fromDispatcher = fromDispatcher;
         this.commandData = commandData;
         this.creator = creator;
     }
@@ -153,14 +151,5 @@ public final class CommandExecutionContext {
     @NotNull
     public CommandManager getCommandManagerCreator() {
         return creator;
-    }
-
-    /**
-     * Returns whenever this context was made from a dispatcher
-     *
-     * @return <code>true</code> if the command wasn't dispatched the normal way, <code>false</code> otherwise
-     */
-    public boolean isFromDispatcher() {
-        return fromDispatcher;
     }
 }

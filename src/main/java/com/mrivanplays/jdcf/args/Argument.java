@@ -7,21 +7,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.annotation.CheckReturnValue;
 
-public final class Argument<T, P> {
+public final class Argument<T, D> {
 
     private final CommandExecutionContext commandContext;
-    private final ArgumentResolver<T, P> argumentResolver;
+    private final ArgumentResolver<T, D> argumentResolver;
     private final String rawArgument;
     private Consumer<T> onSuccess;
-    private Consumer<ArgumentParseFailContext<P>> onFail;
-    private final ArgumentParseGlobalFailHandler globalFailHandler;
+    private Consumer<ArgumentResolveFailContext<D>> onFail;
+    private final ArgumentResolveGlobalFailHandler globalFailHandler;
     private final int argumentPosition;
 
     public Argument(@NotNull CommandExecutionContext commandContext,
-                    @NotNull ArgumentResolver<T, P> resolver,
+                    @NotNull ArgumentResolver<T, D> resolver,
                     @Nullable String rawArgument,
-                    @Nullable ArgumentParseGlobalFailHandler globalFailHandler,
+                    @Nullable ArgumentResolveGlobalFailHandler globalFailHandler,
                     int argumentPosition) {
         this.commandContext = commandContext;
         this.argumentResolver = resolver;
@@ -30,39 +31,43 @@ public final class Argument<T, P> {
         this.argumentPosition = argumentPosition;
     }
 
-    public Argument<T, P> ifPresent(@NotNull Consumer<T> onSuccess) {
+    @CheckReturnValue
+    public Argument<T, D> ifPresent(@NotNull Consumer<T> onSuccess) {
         this.onSuccess = Objects.requireNonNull(onSuccess, "onSuccess");
         return this;
     }
 
-    public Argument<T, P> ifNotPresent(@Nullable Consumer<ArgumentParseFailContext<P>> onFail) {
+    @CheckReturnValue
+    public Argument<T, D> ifNotPresent(@Nullable Consumer<ArgumentResolveFailContext<D>> onFail) {
         this.onFail = onFail;
         return this;
     }
 
-    public ArgumentExecutionResult execute() {
+    public ArgumentExecutionResult<T, D> execute() {
         Objects.requireNonNull(onSuccess, "onSuccess");
         String argument = rawArgument == null ? "" : rawArgument;
-        ArgumentResolverContext resolverContext = new ArgumentResolverContext(
+        ArgumentResolveContext resolveContext = new ArgumentResolveContext(
                 argument,
+                commandContext.getJda(),
                 commandContext.getGuild(),
-                commandContext.getJda()
+                argumentPosition
         );
-        ArgumentParsingState<P> parsingState = argumentResolver.tryParse(resolverContext);
-        if (parsingState.isSuccess()) {
-            onSuccess.accept(argumentResolver.parseNoTests(resolverContext));
+        ArgumentResolverResult<T, D> resolverResult = argumentResolver.parse(resolveContext);
+        if (resolverResult.getValue().isPresent()) {
+            onSuccess.accept(resolverResult.getValue().get());
         } else {
-            ArgumentParseFailContext<P> failContext = new ArgumentParseFailContext<>(
-                    parsingState, rawArgument, commandContext.getCommandData(), argumentPosition
+            Objects.requireNonNull(resolverResult.getFailReason(), "Parsed value is null but there's no failure reason.");
+            ArgumentResolveFailContext<D> failContext = new ArgumentResolveFailContext<>(
+                    resolverResult.getFailReason(), rawArgument, commandContext.getCommandData(), argumentPosition
             );
             if (onFail != null) {
                 onFail.accept(failContext);
             } else {
                 if (globalFailHandler != null) {
-                    globalFailHandler.handleGlobalFail(commandContext, parsingState, rawArgument, argumentPosition);
+                    globalFailHandler.handleGlobalFail(commandContext, failContext);
                 }
             }
         }
-        return new ArgumentExecutionResult(parsingState, rawArgument);
+        return new ArgumentExecutionResult<>(resolverResult, rawArgument);
     }
 }

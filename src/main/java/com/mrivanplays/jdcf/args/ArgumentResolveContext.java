@@ -9,20 +9,18 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a data about a specific argument
  */
-public final class ArgumentResolverContext {
+public final class ArgumentResolveContext {
 
     private final String argument;
     private final Guild guild;
     private final JDA jda;
+    private final int argumentPosition;
 
-    public ArgumentResolverContext(String argument, @NotNull JDA jda) {
-        this(argument, null, jda);
-    }
-
-    public ArgumentResolverContext(String argument, @Nullable Guild guild, @NotNull JDA jda) {
+    public ArgumentResolveContext(String argument, @NotNull JDA jda, @Nullable Guild guild, int argumentPosition) {
         this.argument = argument;
         this.guild = guild;
         this.jda = jda;
+        this.argumentPosition = argumentPosition;
     }
 
     /**
@@ -52,5 +50,14 @@ public final class ArgumentResolverContext {
     @NotNull
     public JDA getJda() {
         return jda;
+    }
+
+    /**
+     * Returns the argument position in the current {@link com.mrivanplays.jdcf.Command} argument hierarchy.
+     *
+     * @return argument position
+     */
+    public int getArgumentPosition() {
+        return argumentPosition;
     }
 }

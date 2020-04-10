@@ -1,7 +1,6 @@
 package com.mrivanplays.jdcf;
 
 import com.mrivanplays.jdcf.args.ArgumentHolder;
-import com.mrivanplays.jdcf.args.ArgumentResolverContext;
 import com.mrivanplays.jdcf.args.ArgumentResolvers;
 import com.mrivanplays.jdcf.builtin.CommandPrefix;
 import com.mrivanplays.jdcf.builtin.help.CommandHelp;
@@ -300,37 +299,36 @@ public final class CommandManager implements EventListener {
         String aliasPrefix = content[0];
         MessageEventSubscriber subscriberEvent = new MessageEventSubscriber(message);
         if (commandSettings.isEnableMentionInsteadPrefix()) {
-            // todo
-//            try {
-//                ArgumentResolverContext context;
-//                if (message.isFromGuild()) {
-//                    context = new ArgumentResolverContext(aliasPrefix, guild, jda);
-//                } else {
-//                    context = new ArgumentResolverContext(aliasPrefix, jda);
-//                }
-////                User user = ArgumentResolvers.USER_MENTION.resolve(context);
-////                if (user.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
-////                    if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
-////                        callSubscribers(subscriberEvent);
-////                    }
-////                } else {
-////                    callSubscribers(subscriberEvent);
-////                }
-//            } catch (Exception e) {
-//                // not a mention
-//                if (aliasPrefix.startsWith(prefix)) {
-//                    String name = aliasPrefix.replace(prefix, "");
-//                    if (!name.isEmpty()) {
-//                        if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
-//                            callSubscribers(subscriberEvent);
-//                        }
-//                    } else {
-//                        callSubscribers(subscriberEvent);
-//                    }
-//                } else {
-//                    callSubscribers(subscriberEvent);
-//                }
-//            }
+            Optional<User> mention = ArgumentHolder.parseArgument(
+                    ArgumentResolvers.USER_MENTION,
+                    aliasPrefix,
+                    jda,
+                    guild
+            );
+            if (mention.isPresent()) {
+                User userMentioned = mention.get();
+                if (userMentioned.getId().equalsIgnoreCase(jda.getSelfUser().getId())) {
+                    if (!executeCommand(content[1], content, 2, member, channel, author, message, jda, guild)) {
+                        callSubscribers(subscriberEvent);
+                    }
+                } else {
+                    callSubscribers(subscriberEvent);
+                }
+            } else {
+                // not a mention
+                if (aliasPrefix.startsWith(prefix)) {
+                    String name = aliasPrefix.replace(prefix, "");
+                    if (!name.isEmpty()) {
+                        if (!executeCommand(name, content, 1, member, channel, author, message, jda, guild)) {
+                            callSubscribers(subscriberEvent);
+                        }
+                    } else {
+                        callSubscribers(subscriberEvent);
+                    }
+                } else {
+                    callSubscribers(subscriberEvent);
+                }
+            }
         } else {
             if (aliasPrefix.startsWith(prefix)) {
                 String name = aliasPrefix.replace(prefix, "");
@@ -371,7 +369,7 @@ public final class CommandManager implements EventListener {
                     }
                     try {
                         CommandExecutionContext commandContext = new CommandExecutionContext(
-                                msg, name, false, command.getDataAsCommandData(), this
+                                msg, name, command.getDataAsCommandData(), this
                         );
                         return command.execute(
                                 commandContext,
@@ -413,7 +411,7 @@ public final class CommandManager implements EventListener {
                     }
                     try {
                         CommandExecutionContext commandContext = new CommandExecutionContext(
-                                msg, name, false, command.getDataAsCommandData(), this
+                                msg, name, command.getDataAsCommandData(), this
                         );
                         return command.execute(
                                 commandContext,
@@ -438,7 +436,7 @@ public final class CommandManager implements EventListener {
                     }
                     try {
                         CommandExecutionContext commandContext = new CommandExecutionContext(
-                                msg, name, false, command.getDataAsCommandData(), this
+                                msg, name, command.getDataAsCommandData(), this
                         );
                         return command.execute(
                                 commandContext,

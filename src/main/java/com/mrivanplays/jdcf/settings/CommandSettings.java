@@ -1,8 +1,8 @@
 package com.mrivanplays.jdcf.settings;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mrivanplays.jdcf.args.ArgumentParseGlobalFailHandler;
-import com.mrivanplays.jdcf.builtin.DefaultFailReasonHandler;
+import com.mrivanplays.jdcf.args.ArgumentResolveGlobalFailHandler;
+import com.mrivanplays.jdcf.builtin.DefaultArgumentResolveGlobalFailHandler;
 import com.mrivanplays.jdcf.settings.prefix.PrefixHandler;
 import com.mrivanplays.jdcf.translation.TranslationCollector;
 import com.mrivanplays.jdcf.translation.Translations;
@@ -42,7 +42,7 @@ public final class CommandSettings {
     private Translations translations;
     private boolean logExecutedCommands;
     private boolean allowDMSCommands;
-    private ArgumentParseGlobalFailHandler globalFailHandler;
+    private ArgumentResolveGlobalFailHandler globalFailHandler;
 
     /**
      * Returns the default settings object
@@ -70,7 +70,7 @@ public final class CommandSettings {
         }
         settings.setLogExecutedCommands(false);
         settings.setAllowDMSCommands(true);
-        settings.setFailReasonHandler(new DefaultFailReasonHandler());
+        settings.setFailReasonHandler(new DefaultArgumentResolveGlobalFailHandler());
         return settings;
     }
 
@@ -364,10 +364,10 @@ public final class CommandSettings {
      * Returns the global argument parse fail handler.
      *
      * @return global argument parse fail handler.
-     * @see ArgumentParseGlobalFailHandler
+     * @see ArgumentResolveGlobalFailHandler
      */
     @Nullable
-    public ArgumentParseGlobalFailHandler getGlobalFailHandler() {
+    public ArgumentResolveGlobalFailHandler getGlobalFailHandler() {
         return globalFailHandler;
     }
 
@@ -375,9 +375,9 @@ public final class CommandSettings {
      * Sets a new global argument parse fail handler.
      *
      * @param globalFailHandler fail reason handler
-     * @see ArgumentParseGlobalFailHandler
+     * @see ArgumentResolveGlobalFailHandler
      */
-    public void setFailReasonHandler(@Nullable ArgumentParseGlobalFailHandler globalFailHandler) {
+    public void setFailReasonHandler(@Nullable ArgumentResolveGlobalFailHandler globalFailHandler) {
         this.globalFailHandler = globalFailHandler;
     }
 }

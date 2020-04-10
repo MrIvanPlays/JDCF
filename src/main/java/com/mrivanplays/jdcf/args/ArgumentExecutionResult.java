@@ -3,23 +3,23 @@ package com.mrivanplays.jdcf.args;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ArgumentExecutionResult {
+public final class ArgumentExecutionResult<T, D> {
 
-    private final ArgumentParsingState<?> argumentParsingState;
+    private final ArgumentResolverResult<T, D> resolverResult;
     private final String rawArgument;
 
-    public ArgumentExecutionResult(@NotNull ArgumentParsingState<?> parsingState, @Nullable String rawArgument) {
-        this.argumentParsingState = parsingState;
+    public ArgumentExecutionResult(@NotNull ArgumentResolverResult<T, D> resolverResult, @Nullable String rawArgument) {
+        this.resolverResult = resolverResult;
         this.rawArgument = rawArgument;
     }
 
     @NotNull
-    public ArgumentParsingState<?> getParsingState() {
-        return argumentParsingState;
+    public ArgumentResolverResult<T, D> getResolverResult() {
+        return resolverResult;
     }
 
     public boolean isSuccessful() {
-        return argumentParsingState.isSuccess();
+        return resolverResult.getValue().isPresent();
     }
 
     @Nullable
